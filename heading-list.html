@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Heading List Demo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Domine:wght@500;700&family=Open+Sans:wght@400;600;700&display=swap">
+</head><body>
+<style>
+/* Layout: one switch drives two panels. Left is what you see, right is what a screen reader gets. */
+:root{
+  --bg:#F7F8F9; --surface:#FFFFFF; --ink:#16181B; --muted:#5F636A;
+  --navy:#00437B; --red:#E11B24; --line:#C7C9C8; --wash:#EAF2F8;
+  --ok:#1B6E3C; --okwash:#E6F2EA;
+  --display:'Domine',Georgia,serif; --body:'Open Sans',Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121417; --surface:#1B1F24; --ink:#EDEFF2; --muted:#A3A9B2;
+  --navy:#8CC2EE; --red:#FF7A80; --line:#333941; --wash:#1E2A35;
+  --ok:#7FD39F; --okwash:#1C2A22; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#121417; --surface:#1B1F24; --ink:#EDEFF2; --muted:#A3A9B2;
+  --navy:#8CC2EE; --red:#FF7A80; --line:#333941; --wash:#1E2A35;
+  --ok:#7FD39F; --okwash:#1C2A22; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 72px}
+h1{font-family:var(--display);font-size:clamp(28px,4.6vw,44px);line-height:1.1;margin:0 0 10px;color:var(--navy);text-wrap:balance}
+.lede{font-size:clamp(16px,2vw,19px);color:var(--muted);max-width:62ch;margin:0 0 8px}
+.rule{width:96px;height:5px;background:var(--red);border:0;margin:20px 0 28px}
+
+.switchbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--bg)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink);font-family:var(--body);font-size:15px;font-weight:700;padding:10px 20px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--surface)}
+.seg button:focus-visible{outline:3px solid var(--red);outline-offset:-3px}
+.switchnote{font-size:14.5px;color:var(--muted);min-width:0;flex:1 1 240px}
+
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media (max-width:860px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0;overflow:hidden}
+.panelhead{padding:16px 20px;border-bottom:1px solid var(--line);background:var(--wash)}
+.panelhead h2{font-family:var(--display);font-size:20px;margin:0 0 3px;color:var(--navy)}
+.panelhead p{margin:0;font-size:14px;color:var(--muted)}
+.panelbody{padding:20px}
+
+/* the faux Canvas page */
+.page{font-size:14.5px;line-height:1.5;max-height:460px;overflow-y:auto}
+.page .ptitle{font-size:23px;font-weight:700;color:var(--ink);padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.page p{margin:0 0 12px}
+.page .fake24{font-size:21px;font-weight:700;margin:16px 0 10px}
+.page .fake20{font-size:18px;font-weight:700;margin:16px 0 10px}
+.page h2.real{font-size:18px;font-weight:700;margin:16px 0 10px;font-family:var(--body)}
+.page h3.real{font-size:15.5px;font-weight:700;margin:13px 0 7px;font-family:var(--body)}
+.page h4.real{font-size:15.5px;font-weight:700;margin:13px 0 7px;font-family:var(--body)}
+.page ul,.page ol{margin:0 0 12px;padding-left:22px}
+.page li{margin-bottom:3px}
+.page table{border-collapse:collapse;width:100%;margin:0 0 12px;font-size:13.5px}
+.page th,.page td{border:1px solid var(--line);padding:6px 9px;text-align:left}
+.page th{background:var(--wash);font-weight:700}
+.page .runon{margin-bottom:12px}
+
+/* the heading list */
+.hlist{list-style:none;margin:0;padding:0;counter-reset:h}
+.hlist li{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.hlist li:last-child{border-bottom:0}
+.lvl{flex:0 0 auto;font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--surface);background:var(--navy);border-radius:5px;padding:3px 7px;margin-top:2px;font-variant-numeric:tabular-nums}
+.lvl.skip{background:var(--red)}
+.htext{min-width:0;font-size:15px}
+.d2{padding-left:26px}
+.d3{padding-left:52px}
+.flag{display:block;font-size:13px;color:var(--red);font-weight:600;margin-top:3px}
+.count{display:flex;align-items:baseline;gap:9px;margin-bottom:14px}
+.count .n{font-family:var(--display);font-size:38px;font-weight:700;line-height:1;color:var(--navy)}
+.count .lbl{font-size:14px;color:var(--muted)}
+.empty{font-size:15px;color:var(--muted);font-style:italic}
+
+.speak{appearance:none;border:0;border-radius:9px;background:var(--navy);color:var(--surface);font-family:var(--body);font-size:15px;font-weight:700;padding:11px 20px;cursor:pointer;margin-top:16px}
+.speak:hover{opacity:.9}
+.speak:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.speak[disabled]{opacity:.5;cursor:default}
+
+.missing{margin-top:18px;border:1px solid var(--red);border-radius:11px;padding:16px 18px;background:var(--surface)}
+.missing h3{font-family:var(--display);font-size:16px;margin:0 0 4px;color:var(--red)}
+.missing p{margin:0 0 10px;font-size:14px;color:var(--muted)}
+.missing ul{margin:0;padding-left:20px;font-size:14.5px}
+.missing li{margin-bottom:4px}
+.good{margin-top:18px;border:1px solid var(--ok);border-radius:11px;padding:16px 18px;background:var(--okwash)}
+.good h3{font-family:var(--display);font-size:16px;margin:0 0 4px;color:var(--ok)}
+.good p{margin:0;font-size:14.5px;color:var(--ink)}
+
+.takeaway{margin-top:30px;background:var(--navy);border-radius:14px;padding:26px clamp(18px,3vw,32px)}
+.takeaway h2{font-family:var(--display);font-size:clamp(19px,2.6vw,25px);margin:0 0 10px;color:#FFFFFF;text-wrap:balance}
+.takeaway p{margin:0 0 10px;color:#D7E7F4;font-size:15.5px;max-width:64ch}
+.takeaway p:last-child{margin-bottom:0}
+.takeaway b{color:#FFFFFF}
+
+.copy{margin-top:30px}
+.copy h2{font-family:var(--display);font-size:clamp(19px,2.6vw,25px);color:var(--navy);margin:0 0 6px}
+.copy > p{color:var(--muted);font-size:15px;margin:0 0 16px;max-width:64ch}
+.codes{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:860px){.codes{grid-template-columns:1fr}}
+.codebox{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0;overflow:hidden}
+.codebox header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--wash)}
+.codebox h3{font-size:15px;margin:0;color:var(--navy)}
+.cbtn{appearance:none;border:1px solid var(--navy);background:transparent;color:var(--navy);border-radius:7px;font-family:var(--body);font-size:13px;font-weight:700;padding:6px 13px;cursor:pointer}
+.cbtn:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.codebox pre{margin:0;padding:14px 16px;overflow-x:auto;max-height:260px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <h1>Heading List Demo</h1>
+  <p class="lede">A screen reader can pull up a list of nothing but the headings on a page and jump straight to the one it needs. This is the same page written two ways, and this is the list each one produces.</p>
+  <hr class="rule">
+
+  <div class="switchbar">
+    <div class="seg" role="group" aria-label="Which version of the page to show">
+      <button type="button" id="btnBefore" aria-pressed="true">Before</button>
+      <button type="button" id="btnAfter" aria-pressed="false">After</button>
+    </div>
+    <p class="switchnote" id="switchnote">Bold text at 20 point. Looks like a heading, is not one.</p>
+  </div>
+
+  <div class="panels">
+    <section class="panel">
+      <div class="panelhead">
+        <h2>What you see</h2>
+        <p>The page as it renders in Canvas.</p>
+      </div>
+      <div class="panelbody">
+        <div class="page" id="pageView"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panelhead">
+        <h2>What a screen reader gets</h2>
+        <p>The heading list, indented by level.</p>
+      </div>
+      <div class="panelbody">
+        <div class="count"><span class="n" id="hcount">3</span><span class="lbl" id="hlabel">headings on the page</span></div>
+        <ul class="hlist" id="hlist"></ul>
+        <button type="button" class="speak" id="speak">Read the list aloud</button>
+        <div id="verdict"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="takeaway">
+    <h2>Size is not structure</h2>
+    <p>Making text big and bold changes how it looks. It does not tell anything that reads the page what the text <b>is</b>. A heading is a tag, not a font size, and the heading tool in the Canvas editor is the only thing that sets it.</p>
+    <p>The second rule is <b>do not skip levels</b>. Going from Heading 2 straight to Heading 4 tells a screen reader there is a missing section between them, so the outline it builds is wrong even though every heading on the page is real.</p>
+    <p>In Canvas the page title is already the page's Heading 1, so your first heading inside the page body is a <b>Heading 2</b>. A second H1 in the body is a duplicate.</p>
+  </div>
+
+  <section class="copy">
+    <h2>Put these in Canvas</h2>
+    <p>Two pages to paste into the HTML editor if you want to click through them live. Same words, same look, different structure.</p>
+    <div class="codes">
+      <div class="codebox">
+        <header><h3>Before: Unit 4 Overview</h3><button type="button" class="cbtn" data-copy="before">Copy</button></header>
+        <pre id="codeBefore"></pre>
+      </div>
+      <div class="codebox">
+        <header><h3>After: Unit 4 Overview (fixed)</h3><button type="button" class="cbtn" data-copy="after">Copy</button></header>
+        <pre id="codeAfter"></pre>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+var BEFORE_PAGE =
+  '<div class="ptitle">Unit 4 Overview</div>' +
+  '<h2 class="real" style="font-size:21px;margin-top:0">Unit 4 Overview</h2>' +
+  '<p>Cellular respiration, and why the Krebs cycle is the part people lose marks on. Read the chapter first, then come back here before you start the discussion.</p>' +
+  '<div class="fake24">What you are doing this week</div>' +
+  '<p class="runon">- Read chapter 7, pages 180 to 214<br>- Watch the two short videos in this module<br>- Post to the discussion by Thursday<br>- Reply to two classmates by Sunday<br>- Submit the worksheet</p>' +
+  '<div class="fake20">About the reading</div>' +
+  '<p>Chapter 7 is the longest chapter in the book and it is the one students tell me they struggle with most, so I want to say something about how to approach it before you start. Do not try to read it in one sitting. The chapter is built in three parts and the second part assumes you understood the first, which is why reading it straight through at eleven at night the day before the discussion tends to go badly. Read the first section, stop, and try to explain it to someone who is not in this class. The third section is the one that shows up on the exam, but it will not make sense unless the first two are solid.</p>' +
+  '<h2 class="real">Assignments</h2>' +
+  '<h4 class="real">Discussion post</h4>' +
+  '<p>Pick one of the three prompts in the discussion and respond in about 250 words.</p>' +
+  '<div class="fake20">Worksheet</div>' +
+  '<p class="runon">The worksheet is in this module. Download it, fill it in, and upload it as a PDF.<br><br>1. Download the worksheet<br>2. Fill in all six sections<br>3. Save it as a PDF<br>4. Upload it here</p>' +
+  '<div class="fake20">Due dates</div>' +
+  '<table><tr><td>Assignment</td><td>Due</td><td>Points</td></tr><tr><td>Discussion post</td><td>Thursday</td><td>20</td></tr><tr><td>Worksheet</td><td>Sunday</td><td>30</td></tr></table>' +
+  '<div class="fake20">Getting help</div>' +
+  '<p class="runon"><strong>Office hours</strong><br>Tuesday 10 to 11:30<br>Thursday 1 to 2:30</p>';
+
+var AFTER_PAGE =
+  '<div class="ptitle">Unit 4 Overview</div>' +
+  '<p>Cellular respiration, and why the Krebs cycle is the part people lose marks on. Read the chapter first, then come back here before you start the discussion.</p>' +
+  '<h2 class="real">What you are doing this week</h2>' +
+  '<ul><li>Read chapter 7, pages 180 to 214</li><li>Watch the two short videos in this module</li><li>Post to the discussion by Thursday</li><li>Reply to two classmates by Sunday</li><li>Submit the worksheet</li></ul>' +
+  '<h2 class="real">About the reading</h2>' +
+  '<p>Chapter 7 is the longest chapter in the book and the one students tell me they struggle with most, so I want to say something about how to approach it.</p>' +
+  '<h3 class="real">Do not read it in one sitting</h3>' +
+  '<p>The chapter is built in three parts, and the second part assumes you understood the first.</p>' +
+  '<h3 class="real">If you get stuck</h3>' +
+  '<p>Bring the specific paragraph that confused you to office hours.</p>' +
+  '<h2 class="real">Assignments</h2>' +
+  '<h3 class="real">Discussion post</h3>' +
+  '<p>Pick one of the three prompts in the discussion and respond in about 250 words.</p>' +
+  '<h3 class="real">Worksheet</h3>' +
+  '<p>The worksheet is in this module. Download it, fill it in, and upload it as a PDF.</p>' +
+  '<ol><li>Download the worksheet</li><li>Fill in all six sections</li><li>Save it as a PDF</li><li>Upload it here</li></ol>' +
+  '<h2 class="real">Due dates</h2>' +
+  '<table><thead><tr><th scope="col">Assignment</th><th scope="col">Due</th><th scope="col">Points</th></tr></thead>' +
+  '<tbody><tr><td>Discussion post</td><td>Thursday</td><td>20</td></tr><tr><td>Worksheet</td><td>Sunday</td><td>30</td></tr></tbody></table>' +
+  '<h2 class="real">Getting help</h2>' +
+  '<h3 class="real">Office hours</h3>' +
+  '<ul><li>Tuesday, 10:00 to 11:30</li><li>Thursday, 1:00 to 2:30</li></ul>';
+
+var BEFORE_LIST = [
+  {lvl:1, text:'Unit 4 Overview', flag:'Duplicates the page title, which is already the H1.'},
+  {lvl:2, text:'Assignments'},
+  {lvl:4, text:'Discussion post', skip:true, flag:'Jumps from level 2 to level 4. A level 3 is missing.'}
+];
+
+var BEFORE_MISSING = [
+  'What you are doing this week',
+  'About the reading',
+  'Worksheet',
+  'Due dates',
+  'Getting help'
+];
+
+var AFTER_LIST = [
+  {lvl:2, text:'What you are doing this week'},
+  {lvl:2, text:'About the reading'},
+  {lvl:3, text:'Do not read it in one sitting'},
+  {lvl:3, text:'If you get stuck'},
+  {lvl:2, text:'Assignments'},
+  {lvl:3, text:'Discussion post'},
+  {lvl:3, text:'Worksheet'},
+  {lvl:2, text:'Due dates'},
+  {lvl:2, text:'Getting help'},
+  {lvl:3, text:'Office hours'}
+];
+
+var pageView = document.getElementById('pageView');
+var hlist = document.getElementById('hlist');
+var hcount = document.getElementById('hcount');
+var hlabel = document.getElementById('hlabel');
+var verdict = document.getElementById('verdict');
+var note = document.getElementById('switchnote');
+var btnBefore = document.getElementById('btnBefore');
+var btnAfter = document.getElementById('btnAfter');
+var speakBtn = document.getElementById('speak');
+var mode = 'before';
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function render(){
+  var isBefore = mode === 'before';
+  pageView.innerHTML = isBefore ? BEFORE_PAGE : AFTER_PAGE;
+  pageView.scrollTop = 0;
+
+  var list = isBefore ? BEFORE_LIST : AFTER_LIST;
+  hcount.textContent = String(list.length);
+  hlabel.textContent = list.length === 1 ? 'heading on the page' : 'headings on the page';
+
+  var html = '';
+  for (var i = 0; i < list.length; i++){
+    var h = list[i];
+    var dent = h.lvl >= 4 ? 'd3' : (h.lvl === 3 ? 'd3' : (h.lvl === 2 ? 'd2' : ''));
+    html += '<li class="' + dent + '">';
+    html += '<span class="lvl' + (h.skip ? ' skip' : '') + '">H' + h.lvl + '</span>';
+    html += '<span class="htext">' + esc(h.text);
+    if (h.flag){ html += '<span class="flag">' + esc(h.flag) + '</span>'; }
+    html += '</span></li>';
+  }
+  hlist.innerHTML = html;
+
+  if (isBefore){
+    var items = '';
+    for (var j = 0; j < BEFORE_MISSING.length; j++){
+      items += '<li>' + esc(BEFORE_MISSING[j]) + '</li>';
+    }
+    verdict.innerHTML =
+      '<div class="missing"><h3>Five more are missing from this list</h3>' +
+      '<p>These are on the page, in bold at 20 or 24 point. They look exactly like the real headings. None of them is one, so none of them is here and none can be jumped to.</p>' +
+      '<ul>' + items + '</ul></div>';
+    note.textContent = 'Bold text at 20 point. Looks like a heading, is not one.';
+  } else {
+    verdict.innerHTML =
+      '<div class="good"><h3>This is an outline</h3>' +
+      '<p>Ten headings, nested two levels, no skips, and no duplicate H1 because the Canvas page title already is one. Somebody can hear this list and jump straight to Worksheet.</p></div>';
+    note.textContent = 'Real headings set with the heading tool. Same words, same look.';
+  }
+
+  btnBefore.setAttribute('aria-pressed', isBefore ? 'true' : 'false');
+  btnAfter.setAttribute('aria-pressed', isBefore ? 'false' : 'true');
+  stopSpeech();
+}
+
+btnBefore.addEventListener('click', function(){ mode = 'before'; render(); });
+btnAfter.addEventListener('click', function(){ mode = 'after'; render(); });
+
+var speaking = false;
+function stopSpeech(){
+  try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch(e){}
+  speaking = false;
+  speakBtn.textContent = 'Read the list aloud';
+}
+
+speakBtn.addEventListener('click', function(){
+  if (!('speechSynthesis' in window)){
+    speakBtn.textContent = 'Speech not available in this browser';
+    speakBtn.disabled = true;
+    return;
+  }
+  if (speaking){ stopSpeech(); return; }
+
+  var list = mode === 'before' ? BEFORE_LIST : AFTER_LIST;
+  var lines = [];
+  for (var i = 0; i < list.length; i++){
+    lines.push('Heading level ' + list[i].lvl + ', ' + list[i].text);
+  }
+  lines.push(list.length + (list.length === 1 ? ' heading' : ' headings'));
+
+  window.speechSynthesis.cancel();
+  speaking = true;
+  speakBtn.textContent = 'Stop';
+
+  for (var k = 0; k < lines.length; k++){
+    var u = new SpeechSynthesisUtterance(lines[k]);
+    u.rate = 1.05;
+    if (k === lines.length - 1){
+      u.onend = function(){ stopSpeech(); };
+    }
+    window.speechSynthesis.speak(u);
+  }
+});
+
+document.getElementById('codeBefore').textContent = BEFORE_PAGE_SOURCE();
+document.getElementById('codeAfter').textContent = AFTER_PAGE_SOURCE();
+
+function BEFORE_PAGE_SOURCE(){
+  return [
+'<h1>Unit 4 Overview</h1>',
+'',
+'<p>Cellular respiration, and why the Krebs cycle is the part',
+'people lose marks on.</p>',
+'',
+'<p><span style="font-size: 24pt;"><strong>What you are doing this week</strong></span></p>',
+'',
+'<p>- Read chapter 7, pages 180 to 214<br />- Watch the two short videos<br />',
+'- Post to the discussion by Thursday<br />- Submit the worksheet</p>',
+'',
+'<p><span style="font-size: 20pt;"><strong>About the reading</strong></span></p>',
+'',
+'<p>Chapter 7 is the longest chapter in the book and it is the one students',
+'tell me they struggle with most. Do not try to read it in one sitting.</p>',
+'',
+'<h2>Assignments</h2>',
+'',
+'<h4>Discussion post</h4>',
+'',
+'<p>Pick one of the three prompts and respond in about 250 words.</p>',
+'',
+'<p><span style="font-size: 20pt;"><strong>Worksheet</strong></span></p>',
+'',
+'<p>Download it, fill it in, and upload it as a PDF.<br /><br />',
+'1. Download the worksheet<br />2. Fill in all six sections<br />',
+'3. Save it as a PDF<br />4. Upload it here</p>',
+'',
+'<p><span style="font-size: 20pt;"><strong>Due dates</strong></span></p>',
+'',
+'<table border="1"><tbody>',
+'<tr><td>Assignment</td><td>Due</td><td>Points</td></tr>',
+'<tr><td>Discussion post</td><td>Thursday</td><td>20</td></tr>',
+'<tr><td>Worksheet</td><td>Sunday</td><td>30</td></tr>',
+'</tbody></table>',
+'',
+'<p><span style="font-size: 20pt;"><strong>Getting help</strong></span></p>',
+'',
+'<p><strong>Office hours</strong><br />Tuesday 10 to 11:30<br />',
+'Thursday 1 to 2:30</p>'
+  ].join('\n');
+}
+
+function AFTER_PAGE_SOURCE(){
+  return [
+'<p>Cellular respiration, and why the Krebs cycle is the part',
+'people lose marks on.</p>',
+'',
+'<h2>What you are doing this week</h2>',
+'',
+'<ul>',
+'<li>Read chapter 7, pages 180 to 214</li>',
+'<li>Watch the two short videos</li>',
+'<li>Post to the discussion by Thursday</li>',
+'<li>Submit the worksheet</li>',
+'</ul>',
+'',
+'<h2>About the reading</h2>',
+'',
+'<p>Chapter 7 is the longest chapter in the book and the one students',
+'tell me they struggle with most.</p>',
+'',
+'<h3>Do not read it in one sitting</h3>',
+'',
+'<p>The chapter is built in three parts, and the second part assumes',
+'you understood the first.</p>',
+'',
+'<h3>If you get stuck</h3>',
+'',
+'<p>Bring the specific paragraph that confused you to office hours.</p>',
+'',
+'<h2>Assignments</h2>',
+'',
+'<h3>Discussion post</h3>',
+'',
+'<p>Pick one of the three prompts and respond in about 250 words.</p>',
+'',
+'<h3>Worksheet</h3>',
+'',
+'<ol>',
+'<li>Download the worksheet</li>',
+'<li>Fill in all six sections</li>',
+'<li>Save it as a PDF</li>',
+'<li>Upload it here</li>',
+'</ol>',
+'',
+'<h2>Due dates</h2>',
+'',
+'<table border="1">',
+'<caption>Unit 4 due dates and point values</caption>',
+'<thead><tr><th scope="col">Assignment</th><th scope="col">Due</th>',
+'<th scope="col">Points</th></tr></thead>',
+'<tbody>',
+'<tr><td>Discussion post</td><td>Thursday</td><td>20</td></tr>',
+'<tr><td>Worksheet</td><td>Sunday</td><td>30</td></tr>',
+'</tbody></table>',
+'',
+'<h2>Getting help</h2>',
+'',
+'<h3>Office hours</h3>',
+'',
+'<ul><li>Tuesday, 10:00 to 11:30</li><li>Thursday, 1:00 to 2:30</li></ul>'
+  ].join('\n');
+}
+
+var buttons = document.querySelectorAll('.cbtn');
+for (var b = 0; b < buttons.length; b++){
+  buttons[b].addEventListener('click', function(ev){
+    var which = ev.currentTarget.getAttribute('data-copy');
+    var el = document.getElementById(which === 'before' ? 'codeBefore' : 'codeAfter');
+    var btn = ev.currentTarget;
+    var done = function(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1600); };
+    try {
+      navigator.clipboard.writeText(el.textContent).then(done, function(){ selectIt(el, btn); });
+    } catch(e){ selectIt(el, btn); }
+  });
+}
+function selectIt(el, btn){
+  try {
+    var r = document.createRange(); r.selectNodeContents(el);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = 'Selected, press Cmd C';
+    setTimeout(function(){ btn.textContent = 'Copy'; }, 2400);
+  } catch(e){}
+}
+
+render();
+</script>
+
+</body></html>

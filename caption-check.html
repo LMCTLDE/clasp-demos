@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Caption Check</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Domine:wght@700&family=Open+Sans:wght@400;600;700&display=swap">
+</head><body>
+<style>
+/* Layout: one column; a muted mock player with timed captions, then the side-by-side transcript and the YouTube check */
+:root{--bg:#F7F8F9;--card:#FFFFFF;--ink:#16181B;--muted:#5F636A;--navy:#00437B;--red:#E11B24;--rule:#C7C9C8;--screen:#0E1A26;--screenInk:#FFFFFF;--bad:#B3121A;--badBg:#FDECEC;--good:#0B5C3A;--goodBg:#E6F4EC;
+--display:'Domine',Georgia,serif;--body:'Open Sans',system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1720;--card:#17212D;--ink:#EEF1F4;--muted:#A9B2BC;--navy:#96D2F2;--rule:#2E3B49;--screen:#05090E;--bad:#FF9A9F;--badBg:#3A1A1D;--good:#8FE0B6;--goodBg:#14321F;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1720;--card:#17212D;--ink:#EEF1F4;--muted:#A9B2BC;--navy:#96D2F2;--rule:#2E3B49;--screen:#05090E;--bad:#FF9A9F;--badBg:#3A1A1D;--good:#8FE0B6;--goodBg:#14321F;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1000px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:24px}
+h1{font-family:var(--display);color:var(--navy);font-size:2rem;margin:0;text-wrap:balance}
+h2{font-family:var(--display);color:var(--navy);font-size:1.3rem;margin:0}
+.rule{width:160px;height:4px;background:var(--red);margin-top:10px}
+.lede{margin:12px 0 0;color:var(--muted);max-width:62ch}
+.player{position:relative;aspect-ratio:16/9;max-width:100%;background:var(--screen);border-radius:10px;overflow:hidden}
+.board{position:absolute;inset:8% 8% 34% 8%;border:2px solid rgba(255,255,255,.18);border-radius:6px}
+.board i{position:absolute;left:8%;height:3px;background:rgba(255,255,255,.22);border-radius:2px}
+.person{position:absolute;right:12%;bottom:0;width:22%;aspect-ratio:1/1.4}
+.person::before{content:"";position:absolute;left:30%;top:0;width:40%;aspect-ratio:1;border-radius:50%;background:#3C5A78}
+.person::after{content:"";position:absolute;left:5%;bottom:0;width:90%;height:58%;border-radius:45% 45% 0 0;background:#2C4762}
+.muted{position:absolute;top:12px;left:12px;font:700 .75rem var(--body);letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px}
+.cap{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);max-width:88%;text-align:center;font:600 clamp(.95rem,2.6vw,1.45rem)/1.35 var(--body);color:var(--screenInk);background:rgba(0,0,0,.78);padding:6px 14px;border-radius:4px}
+.cap:empty{display:none}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;border:2px solid var(--navy);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--navy);font:600 .95rem var(--body);padding:8px 16px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--card)}
+.btn{border:2px solid var(--navy);background:var(--navy);color:var(--card);font:700 .95rem var(--body);padding:8px 18px;border-radius:999px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.bar{flex:1 1 160px;height:6px;background:var(--rule);border-radius:3px;overflow:hidden;min-width:120px}
+.bar span{display:block;height:100%;width:0;background:var(--red)}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:20px 22px;min-width:0}
+.tbl{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--rule)}
+th{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+td.t{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+mark.x{background:var(--badBg);color:var(--bad);border-radius:3px;padding:0 3px}
+mark.ok{background:var(--goodBg);color:var(--good);border-radius:3px;padding:0 3px}
+tr.now td{background:color-mix(in srgb,var(--navy) 10%,transparent)}
+.menus{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:14px}
+.menu{border:1px solid var(--rule);border-radius:8px;padding:14px 16px}
+.menu .lbl{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.menu .lbl.b{color:var(--bad)}.menu .lbl.g{color:var(--good)}
+.menu ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px;font-size:.95rem}
+.menu li{padding:6px 10px;border-radius:4px;background:var(--bg)}
+.menu li.sel{outline:2px solid var(--navy)}
+.menu p{margin:10px 0 0;font-size:.9rem;color:var(--muted)}
+</style>
+<div class="wrap">
+<header>
+<h1>Who made the video decides what you do</h1>
+<div class="rule"></div>
+<p class="lede">A thirty second lecture clip, sound off, captions on. Play it with the machine captions, then with the edited ones. Same words spoken, different lecture read.</p>
+</header>
+
+<div class="player" aria-label="Mock lecture video with captions">
+<div class="board"><i style="top:18%;width:55%"></i><i style="top:34%;width:40%"></i><i style="top:50%;width:62%"></i><i style="top:66%;width:30%"></i></div>
+<div class="person" aria-hidden="true"></div>
+<div class="muted">SOUND OFF</div>
+<div class="cap" id="cap" aria-live="off"></div>
+</div>
+
+<div class="controls">
+<div class="seg" role="group" aria-label="Caption track">
+<button id="t-auto" aria-pressed="true">Machine captions</button>
+<button id="t-edit" aria-pressed="false">Edited captions</button>
+</div>
+<button class="btn" id="play">Play</button>
+<div class="bar" aria-hidden="true"><span id="prog"></span></div>
+</div>
+
+<section class="card" aria-labelledby="h-side">
+<h2 id="h-side">Side by side</h2>
+<div class="tbl">
+<table>
+<thead><tr><th scope="col">Time</th><th scope="col">Machine</th><th scope="col">Edited</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</section>
+
+<section class="card" aria-labelledby="h-yt">
+<h2 id="h-yt">Someone else's video: check the label</h2>
+<p class="lede" style="margin-top:6px">On YouTube, open the captions setting and read the track name before you assign the video.</p>
+<div class="menus">
+<div class="menu"><div class="lbl b">Machine only</div><ul><li>Off</li><li class="sel">English (auto-generated)</li></ul><p>Find another video, or supply a transcript.</p></div>
+<div class="menu"><div class="lbl g">Human captions</div><ul><li>Off</li><li class="sel">English</li><li>English (auto-generated)</li></ul><p>Use it. The track without "auto" is the one a person made.</p></div>
+</div>
+</section>
+</div>
+<script>
+const C=[
+ [0,5,'okay so today were picking up the <mark class="x">crabs cycle</mark> where we left off','Okay, so today we\'re picking up the <mark class="ok">Krebs cycle</mark> where we left off.'],
+ [5,9,'remember it runs inside the <mark class="x">my toe Kondria</mark>','Remember, it runs inside the <mark class="ok">mitochondria</mark>.'],
+ [9,14,'<mark class="x">a seat ill co a</mark> enters and combines with <mark class="x">ox a low acetate</mark>','<mark class="ok">Acetyl-CoA</mark> enters and combines with <mark class="ok">oxaloacetate</mark>.'],
+ [14,19,'each turn makes <mark class="x">to</mark> C O 2 and one <mark class="x">a TP</mark>','Each turn makes <mark class="ok">two</mark> CO<sub>2</sub> and one <mark class="ok">ATP</mark>.'],
+ [19,25,'so if i ask you on the exam how many <mark class="x">and a d h</mark> the answer is three','So if I ask you on the exam how many <mark class="ok">NADH</mark>, the answer is three.'],
+ [25,29,'<mark class="x">not to three</mark>','<mark class="ok">Not two. Three.</mark>']
+];
+const END=30;let track=0,t0=0,raf=0,playing=false;
+const cap=document.getElementById('cap'),prog=document.getElementById('prog'),rows=document.getElementById('rows');
+C.forEach((c,k)=>{const tr=document.createElement('tr');tr.id='r'+k;const f=s=>'0:'+String(s).padStart(2,'0');tr.innerHTML='<td class="t">'+f(c[0])+'</td><td>'+c[2]+'</td><td>'+c[3]+'</td>';rows.appendChild(tr)});
+function strip(h){return track===0?h.replace(/<[^>]+>/g,''):h.replace(/<mark[^>]*>|<\/mark>/g,'')}
+function frame(now){
+ const s=(now-t0)/1000;
+ if(s>=END){stopPlay();return}
+ prog.style.width=(s/END*100)+'%';
+ let k=C.findIndex(c=>s>=c[0]&&s<c[1]);
+ cap.innerHTML=k<0?'':strip(C[k][2+track]);
+ document.querySelectorAll('tr.now').forEach(r=>r.classList.remove('now'));
+ if(k>=0)document.getElementById('r'+k).classList.add('now');
+ raf=requestAnimationFrame(frame);
+}
+function startPlay(){cancelAnimationFrame(raf);t0=performance.now();playing=true;document.getElementById('play').textContent='Restart';raf=requestAnimationFrame(frame)}
+function stopPlay(){cancelAnimationFrame(raf);playing=false;cap.innerHTML='';prog.style.width='100%';document.querySelectorAll('tr.now').forEach(r=>r.classList.remove('now'));document.getElementById('play').textContent='Play again'}
+function setTrack(n){track=n;document.getElementById('t-auto').setAttribute('aria-pressed',n===0);document.getElementById('t-edit').setAttribute('aria-pressed',n===1);if(playing)startPlay()}
+document.getElementById('t-auto').onclick=()=>setTrack(0);
+document.getElementById('t-edit').onclick=()=>setTrack(1);
+document.getElementById('play').onclick=startPlay;
+cap.innerHTML=strip(C[0][2]);
+</script>
+
+</body></html>

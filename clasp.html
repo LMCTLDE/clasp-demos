@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>CLASP</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Domine:wght@500;700&family=Open+Sans:wght@400;600;700&display=swap">
+</head><body>
+<style>
+/* Layout: a wordmark-led header, a sticky letter strip, then six stacked sections that each show one thing twice */
+:root{
+  --bg:#F7F8F9; --card:#FFFFFF; --ink:#16181B; --muted:#5F636A;
+  --navy:#00437B; --red:#E11B24; --line:#C7C9C8; --wash:#EAF2F8;
+  --ok:#0B5C3A; --okBg:#E6F4EC; --bad:#B3121A; --badBg:#FDECEC;
+  --screen:#0E1A26; --screenInk:#FFFFFF;
+  --display:'Domine',Georgia,serif; --body:'Open Sans',system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1720; --card:#17212D; --ink:#EEF1F4; --muted:#A9B2BC;
+  --navy:#96D2F2; --red:#FF7A80; --line:#2E3B49; --wash:#1B2936;
+  --ok:#8FE0B6; --okBg:#14321F; --bad:#FF9A9F; --badBg:#3A1A1D;
+  --screen:#05090E; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F1720; --card:#17212D; --ink:#EEF1F4; --muted:#A9B2BC;
+  --navy:#96D2F2; --red:#FF7A80; --line:#2E3B49; --wash:#1B2936;
+  --ok:#8FE0B6; --okBg:#14321F; --bad:#FF9A9F; --badBg:#3A1A1D;
+  --screen:#05090E; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 72px}
+
+/* wordmark */
+.mark{display:inline-grid;grid-template-columns:auto auto auto;align-items:center;gap:0 10px;margin-bottom:22px}
+.mark .lt{font-family:var(--body);font-weight:700;font-size:30px;letter-spacing:.02em;color:var(--ink);line-height:1.1}
+.mark .x{font-family:var(--body);font-weight:700;font-size:30px;color:var(--red);grid-row:1 / span 2;align-self:center}
+.mark .lb{font-family:var(--body);font-size:10px;font-weight:600;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;line-height:1.1}
+.mark .c1{grid-column:1}.mark .c3{grid-column:3}
+
+h1{font-family:var(--display);font-size:clamp(34px,6vw,58px);line-height:1.05;margin:0;color:var(--navy);letter-spacing:.01em}
+.sub{font-size:clamp(17px,2.2vw,21px);color:var(--ink);margin:14px 0 0;max-width:60ch}
+.lede{color:var(--muted);margin:10px 0 0;max-width:64ch}
+.rule{width:120px;height:5px;background:var(--red);border:0;margin:22px 0 0}
+
+.strip{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;margin-top:26px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px}
+.strip a{text-decoration:none;display:inline-flex;align-items:baseline;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;color:var(--ink);font-size:14px}
+.strip a b{font-family:var(--display);font-size:16px;color:var(--navy)}
+.strip a:hover{border-color:var(--navy)}
+.strip a:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+
+section.topic{margin-top:40px;scroll-margin-top:90px}
+.head{display:flex;align-items:flex-start;gap:16px}
+.badge{flex:0 0 auto;width:54px;height:54px;border-radius:12px;background:var(--navy);color:#FFFFFF;font-family:var(--display);font-weight:700;font-size:28px;display:flex;align-items:center;justify-content:center}
+.badge.t{background:var(--muted);font-size:17px}
+.head h2{font-family:var(--display);font-size:clamp(23px,3vw,30px);margin:0;color:var(--navy);line-height:1.15}
+.head .rulez{margin:7px 0 0;font-size:17px;color:var(--ink);max-width:62ch}
+.head .where{margin:7px 0 0;font-size:14.5px;color:var(--muted)}
+.head a{color:var(--navy);font-weight:600}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-top:18px;min-width:0}
+.card h3{font-family:var(--display);font-size:17px;margin:0 0 4px;color:var(--navy)}
+.card .note{font-size:14.5px;color:var(--muted);margin:0 0 14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+.pane{border:1px solid var(--line);border-radius:11px;padding:16px;min-width:0;background:var(--bg)}
+.pane h4{margin:0 0 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;border:2px solid var(--navy);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--navy);font:600 14.5px var(--body);padding:8px 16px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--card)}
+.btn{border:2px solid var(--navy);background:var(--navy);color:var(--card);font:700 14.5px var(--body);padding:8px 18px;border-radius:999px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--navy)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.said{margin-top:12px;background:var(--screen);color:var(--screenInk);border-radius:10px;padding:14px 16px;font-size:15.5px;min-height:54px;line-height:1.5}
+.said em{color:#9DC7E8;font-style:normal}
+
+/* C */
+.player{position:relative;aspect-ratio:16/9;background:var(--screen);border-radius:10px;overflow:hidden}
+.board{position:absolute;inset:8% 8% 34% 8%;border:2px solid rgba(255,255,255,.18);border-radius:6px}
+.board i{position:absolute;left:8%;height:3px;background:rgba(255,255,255,.22);border-radius:2px}
+.person{position:absolute;right:12%;bottom:0;width:22%;aspect-ratio:1/1.4}
+.person::before{content:"";position:absolute;left:30%;top:0;width:40%;aspect-ratio:1;border-radius:50%;background:#3C5A78}
+.person::after{content:"";position:absolute;left:5%;bottom:0;width:90%;height:58%;border-radius:45% 45% 0 0;background:#2C4762}
+.soundoff{position:absolute;top:12px;left:12px;font:700 11px var(--body);letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px}
+.cap{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);max-width:88%;text-align:center;font:600 clamp(14px,2.4vw,20px)/1.35 var(--body);color:var(--screenInk);background:rgba(0,0,0,.78);padding:6px 14px;border-radius:4px}
+.cap:empty{display:none}
+.bar{flex:1 1 140px;height:6px;background:var(--line);border-radius:3px;overflow:hidden;min-width:110px}
+.bar span{display:block;height:100%;width:0;background:var(--red)}
+.tbl{overflow-x:auto}
+table.cmp{border-collapse:collapse;width:100%;font-size:14.5px}
+table.cmp th,table.cmp td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+table.cmp th{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+table.cmp td.t{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+mark.x{background:var(--badBg);color:var(--bad);border-radius:3px;padding:0 3px}
+mark.g{background:var(--okBg);color:var(--ok);border-radius:3px;padding:0 3px}
+tr.now td{background:var(--wash)}
+.menus{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:6px}
+.menu{border:1px solid var(--line);border-radius:9px;padding:13px 15px;background:var(--bg)}
+.menu .lbl{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.menu .lbl.b{color:var(--bad)}.menu .lbl.g{color:var(--ok)}
+.menu ul{list-style:none;margin:9px 0 0;padding:0;display:grid;gap:4px;font-size:14.5px}
+.menu li{padding:6px 10px;border-radius:4px;background:var(--card)}
+.menu li.sel{outline:2px solid var(--navy)}
+.menu p{margin:9px 0 0;font-size:13.5px;color:var(--muted)}
+
+/* L */
+ul.links{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+ul.links li{font-size:16px}
+ul.links a{color:var(--navy)}
+ul.links li.on{background:var(--wash);border-radius:6px;padding:3px 7px;margin:-3px -7px}
+
+/* A */
+.imgrow{display:grid;gap:12px}
+.imgitem{display:flex;gap:14px;align-items:flex-start;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.imgitem.on{border-color:var(--navy);background:var(--wash)}
+.thumb{flex:0 0 auto;width:86px;height:58px;border-radius:7px;overflow:hidden;position:relative;background:var(--wash)}
+.thumb.wave{background:linear-gradient(180deg,#00437B 0%,#2E7FBF 55%,#96D2F2 100%)}
+.thumb.sign{background:#00437B;display:flex;align-items:center;justify-content:center}
+.thumb.sign::after{content:"OFFICE HOURS";color:#fff;font:700 8px var(--body);letter-spacing:.08em}
+.thumb.chart{background:var(--card);display:flex;align-items:flex-end;gap:4px;padding:7px}
+.thumb.chart i{flex:1;background:var(--navy);border-radius:2px 2px 0 0}
+.imgitem .meta{min-width:0}
+.imgitem .path{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.imgitem .alt{font-size:14.5px;margin-top:3px;word-break:break-word}
+.imgitem .alt code{background:var(--badBg);color:var(--bad);border-radius:3px;padding:1px 5px;font-size:13px}
+
+/* S */
+.page{font-size:14px;line-height:1.5;max-height:330px;overflow-y:auto;background:var(--bg);border-radius:9px;padding:15px}
+.page .ptitle{font-size:19px;font-weight:700;padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.page p{margin:0 0 10px}
+.page .fake{font-size:17px;font-weight:700;margin:14px 0 8px}
+.page h3.real{font-size:17px;font-weight:700;margin:14px 0 8px;font-family:var(--body)}
+.page h4.real{font-size:14.5px;font-weight:700;margin:11px 0 6px;font-family:var(--body)}
+.page ul{margin:0 0 10px;padding-left:20px}
+ul.hlist{list-style:none;margin:0;padding:0}
+ul.hlist li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line)}
+ul.hlist li:last-child{border-bottom:0}
+.lvl{flex:0 0 auto;font-size:11px;font-weight:700;letter-spacing:.08em;color:#FFFFFF;background:var(--navy);border-radius:5px;padding:3px 7px;margin-top:2px}
+.lvl.skip{background:var(--red)}
+.d2{padding-left:22px}.d3{padding-left:44px}
+.flagline{display:block;font-size:12.5px;color:var(--red);font-weight:600;margin-top:2px}
+.missing{margin-top:12px;border:1px solid var(--red);border-radius:10px;padding:13px 15px;background:var(--card)}
+.missing b{color:var(--red)}
+.missing ul{margin:8px 0 0;padding-left:19px;font-size:14px}
+
+/* P */
+.swatch{height:84px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:#FFFFFF}
+.ratio{font-family:var(--display);font-size:34px;font-weight:700;line-height:1;margin-top:11px}
+.verdict{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:3px 9px;border-radius:5px;display:inline-block;margin-top:7px}
+.verdict.p{background:var(--okBg);color:var(--ok)}
+.verdict.f{background:var(--badBg);color:var(--bad)}
+input[type=text]{font:inherit;font-family:ui-monospace,Menlo,monospace;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);width:130px}
+.form{display:grid;gap:11px}
+.frow{display:grid;grid-template-columns:150px 1fr;gap:11px;align-items:center}
+@media (max-width:520px){.frow{grid-template-columns:1fr}}
+.frow label{font-size:14.5px;font-weight:600}
+.frow .fake-input{height:34px;border:1px solid var(--line);border-radius:7px;background:var(--card)}
+.gray .frow label{color:var(--ink)!important}
+
+/* T */
+table.demo{border-collapse:collapse;width:100%;font-size:14.5px}
+table.demo td,table.demo th{border:1px solid var(--line);padding:8px 10px;text-align:left}
+table.demo th{background:var(--wash);font-weight:700}
+table.demo td.pick,table.demo th.pick{outline:3px solid var(--red);outline-offset:-3px;cursor:pointer}
+table.demo td{cursor:pointer}
+.hint{font-size:13.5px;color:var(--muted);margin:9px 0 0}
+
+.foot{margin-top:52px;border-top:1px solid var(--line);padding-top:24px;color:var(--muted);font-size:14.5px}
+.foot a{color:var(--navy);font-weight:600}
+.foot h2{font-family:var(--display);font-size:20px;color:var(--navy);margin:0 0 8px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+  <div class="mark" role="img" aria-label="More Usable times More People">
+    <span class="lt c1">MU</span><span class="x">&times;</span><span class="lt c3">MP</span>
+    <span class="lb c1">More Usable</span><span class="lb c3">More People</span>
+  </div>
+
+  <h1>CLASP</h1>
+  <p class="sub">Five things that make a course usable by more people. Captions, Links, Alt text, Structure, Palette. Lock in the basics and most of the rest follows.</p>
+  <p class="lede">Every section below shows the same thing twice. Nothing on this page is a rule you have to take on faith. Press the button and listen to what changes.</p>
+  <hr class="rule">
+
+  <nav class="strip" aria-label="Jump to a topic">
+    <a href="#c"><b>C</b> Captions</a>
+    <a href="#l"><b>L</b> Links</a>
+    <a href="#a"><b>A</b> Alt text</a>
+    <a href="#s"><b>S</b> Structure</a>
+    <a href="#p"><b>P</b> Palette</a>
+    <a href="#t"><b>+</b> Tables</a>
+  </nav>
+
+  <!-- ============ C ============ -->
+  <section class="topic" id="c">
+    <div class="head">
+      <div class="badge">C</div>
+      <div>
+        <h2>Captions</h2>
+        <p class="rulez">Who made the video decides what you do. Your own video, you fix the captions. Someone else's, you check the label before you assign it.</p>
+        <p class="where">Read more: <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Captions-and-Transcripts.aspx">Captions and Transcripts</a> &middot; <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Caption-Writing-Conventions.aspx">Caption Writing Conventions</a></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Thirty seconds of a lecture, sound off</h3>
+      <p class="note">Play it with the machine captions, then switch and play it again. Same words spoken, different lecture read.</p>
+      <div class="player" aria-label="Mock lecture video with captions">
+        <div class="board"><i style="top:18%;width:55%"></i><i style="top:34%;width:40%"></i><i style="top:50%;width:62%"></i><i style="top:66%;width:30%"></i></div>
+        <div class="person" aria-hidden="true"></div>
+        <div class="soundoff">SOUND OFF</div>
+        <div class="cap" id="cap" aria-live="off"></div>
+      </div>
+      <div class="ctl" style="margin-top:14px;margin-bottom:0">
+        <div class="seg" role="group" aria-label="Caption track">
+          <button id="tAuto" aria-pressed="true">Machine captions</button>
+          <button id="tEdit" aria-pressed="false">Edited captions</button>
+        </div>
+        <button class="btn" id="playBtn">Play</button>
+        <div class="bar" aria-hidden="true"><span id="prog"></span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Side by side</h3>
+      <div class="tbl">
+        <table class="cmp">
+          <thead><tr><th scope="col">Time</th><th scope="col">Machine</th><th scope="col">Edited</th></tr></thead>
+          <tbody id="capRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Someone else's video: read the track name</h3>
+      <p class="note">On YouTube, open the captions setting before you assign it. The word to look for is "auto-generated."</p>
+      <div class="menus">
+        <div class="menu"><div class="lbl b">Machine only</div><ul><li>Off</li><li class="sel">English (auto-generated)</li></ul><p>Find another video, or supply a transcript.</p></div>
+        <div class="menu"><div class="lbl g">Human captions</div><ul><li>Off</li><li class="sel">English</li><li>English (auto-generated)</li></ul><p>Use it. The track without "auto" is the one a person made.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ L ============ -->
+  <section class="topic" id="l">
+    <div class="head">
+      <div class="badge">L</div>
+      <div>
+        <h2>Links</h2>
+        <p class="rulez">Link text names the destination. A screen reader can pull up a list of nothing but the links on a page, and that list is all the reader gets.</p>
+        <p class="where">Read more: <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Descriptive%20Links.aspx">Descriptive Links</a></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>The link list, read aloud</h3>
+      <p class="note">This is every link on one page, pulled out of its sentences. Press play on the before version and resist the urge to explain it.</p>
+      <div class="ctl">
+        <div class="seg" role="group" aria-label="Link version">
+          <button id="lBefore" aria-pressed="true">Before</button>
+          <button id="lAfter" aria-pressed="false">After</button>
+        </div>
+        <button class="btn" id="lSpeak">Read the list aloud</button>
+      </div>
+      <ul class="links" id="linkList"></ul>
+      <div class="said" id="lSaid"><em>Nothing playing.</em></div>
+    </div>
+  </section>
+
+  <!-- ============ A ============ -->
+  <section class="topic" id="a">
+    <div class="head">
+      <div class="badge">A</div>
+      <div>
+        <h2>Alt text</h2>
+        <p class="rulez">Alt text says why the image is there, not what is in it. Three paths: decorative, informative, complex. Pick the path before you type anything.</p>
+        <p class="where">Read more: <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Basic-Alternative-Text.aspx">Basic Alternative Text</a> &middot; <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Complex-Alt-Text-Guide.aspx">Complex Alt Text Guide</a></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Three images on one page</h3>
+      <p class="note">Canvas fills the alt text box with the file name, so an image with no real alt text looks finished. Listen to the page both ways.</p>
+      <div class="ctl">
+        <div class="seg" role="group" aria-label="Alt text version">
+          <button id="aBefore" aria-pressed="true">File names</button>
+          <button id="aAfter" aria-pressed="false">Fixed</button>
+        </div>
+        <button class="btn" id="aSpeak">Read the page aloud</button>
+      </div>
+      <div class="imgrow" id="imgRow"></div>
+      <div class="said" id="aSaid"><em>Nothing playing.</em></div>
+    </div>
+  </section>
+
+  <!-- ============ S ============ -->
+  <section class="topic" id="s">
+    <div class="head">
+      <div class="badge">S</div>
+      <div>
+        <h2>Structure</h2>
+        <p class="rulez">A heading is a tag, not a font size. Big and bold changes how text looks; it does not tell anything reading the page what the text is.</p>
+        <p class="where">Read more: <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Page-Structure.aspx">Page Structure</a></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>The same page, twice</h3>
+      <p class="note">Left is what you see. Right is the heading list a screen reader builds from it, indented by level. Flip the switch and watch the left barely change.</p>
+      <div class="ctl">
+        <div class="seg" role="group" aria-label="Page version">
+          <button id="sBefore" aria-pressed="true">Before</button>
+          <button id="sAfter" aria-pressed="false">After</button>
+        </div>
+        <button class="btn" id="sSpeak">Read the list aloud</button>
+      </div>
+      <div class="two">
+        <div class="pane">
+          <h4>What you see</h4>
+          <div class="page" id="sPage"></div>
+        </div>
+        <div class="pane">
+          <h4>What a screen reader gets</h4>
+          <p style="margin:0 0 10px;font-size:14.5px;color:var(--muted)"><b id="sCount" style="font-family:var(--display);font-size:26px;color:var(--navy)">3</b> <span id="sLabel">headings on the page</span></p>
+          <ul class="hlist" id="sList"></ul>
+          <div id="sVerdict"></div>
+        </div>
+      </div>
+      <div class="said" id="sSaid"><em>Nothing playing.</em></div>
+    </div>
+  </section>
+
+  <!-- ============ P ============ -->
+  <section class="topic" id="p">
+    <div class="head">
+      <div class="badge">P</div>
+      <div>
+        <h2>Palette</h2>
+        <p class="rulez">Two things. Text needs enough contrast against its background, and colour is never the only thing carrying meaning.</p>
+        <p class="where">Read more: <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Color-and-Contrast.aspx">Color and Contrast</a></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Contrast is a number, and you can fix it by nudging</h3>
+      <p class="note">Paste a colour you use. White text on it needs 4.5 to 1 for normal text, 3 to 1 at 18 point and up. Press Darker until it passes.</p>
+      <div class="ctl">
+        <input type="text" id="hex" value="#9CC3E5" aria-label="Hex colour" spellcheck="false">
+        <button class="btn ghost" id="darker">Darker</button>
+        <button class="btn ghost" id="reset">Reset</button>
+        <button class="btn" id="copyHex">Copy hex</button>
+      </div>
+      <div class="two">
+        <div class="pane">
+          <h4>Your colour</h4>
+          <div class="swatch" id="swatch">Sample text</div>
+          <p class="ratio" id="ratio">1.85</p>
+          <span class="verdict f" id="verdict">Fails</span>
+        </div>
+        <div class="pane">
+          <h4>Why it matters</h4>
+          <p style="margin:0;font-size:15px">It is almost always one custom colour reused in a dozen places, which makes this one decision rather than a dozen fixes.</p>
+          <p style="margin:10px 0 0;font-size:14.5px;color:var(--muted)">Try <b>#FFF200</b>, the brightest yellow most people reach for. It comes in at 1.17.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Colour on its own</h3>
+      <p class="note">Required fields marked in red only. Press the button to drop the colour, which is roughly what a colourblind student or a greyscale printout gives you.</p>
+      <div class="ctl">
+        <button class="btn" id="grayBtn">Remove the colour</button>
+      </div>
+      <div class="form" id="theForm">
+        <div class="frow"><label style="color:var(--red)">Full name</label><div class="fake-input"></div></div>
+        <div class="frow"><label style="color:var(--red)">Email address</label><div class="fake-input"></div></div>
+        <div class="frow"><label>Preferred name</label><div class="fake-input"></div></div>
+        <div class="frow"><label>Phone</label><div class="fake-input"></div></div>
+      </div>
+      <p class="hint" id="grayHint">Two of these four are required. With the colour gone, nobody can tell which.</p>
+    </div>
+  </section>
+
+  <!-- ============ TABLES ============ -->
+  <section class="topic" id="t">
+    <div class="head">
+      <div class="badge t">TBL</div>
+      <div>
+        <h2>Tables</h2>
+        <p class="rulez">Not a CLASP letter, but the one that quietly breaks the most. A header row has to be marked as header cells. Bold text in the top row is not a header row.</p>
+        <p class="where">Read more: <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Tables.aspx">Tables</a></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Click any cell and hear it announced</h3>
+      <p class="note">A screen reader reads a cell with its column heading attached, but only if the heading is a real header cell. Switch between the two tables and click the same cell.</p>
+      <div class="ctl">
+        <div class="seg" role="group" aria-label="Table version">
+          <button id="tBold" aria-pressed="true">Bold top row</button>
+          <button id="tHead" aria-pressed="false">Real header cells</button>
+        </div>
+        <button class="btn" id="tSpeak">Read the cell aloud</button>
+      </div>
+      <div class="tbl"><div id="tableHost"></div></div>
+      <p class="hint" id="tHint">Click a cell in the body of the table.</p>
+      <div class="said" id="tSaid"><em>Nothing selected.</em></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <h2>Where the rest of it lives</h2>
+    <p>Every topic above has a full page on the TLDE site, and recorded sessions are collected on <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Accessibility-Recordings.aspx">Accessibility Recordings</a>, sorted by topic rather than by when they ran. <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/Accessibility-Fundamentals.aspx">Accessibility Fundamentals</a> is the starting point if you want one page to read.</p>
+    <p>Stuck on something specific? <a href="https://lakemichigancollege.sharepoint.com/TLDE/SitePages/TLDE-Members.aspx">Contact TLDE</a> and we will work through it with you.</p>
+  </div>
+</div>
+
+<script>
+/* ---------- shared speech ---------- */
+var SPEAK = (function(){
+  var active = null;
+  function stop(){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
+    if(active){ active.btn.textContent = active.label; active = null; } }
+  function run(lines, btn, label, out){
+    if(!('speechSynthesis' in window)){ btn.textContent='Speech not available'; btn.disabled=true; return; }
+    if(active && active.btn === btn){ stop(); if(out) out.innerHTML='<em>Stopped.</em>'; return; }
+    stop();
+    window.speechSynthesis.cancel();
+    active = {btn:btn, label:label};
+    btn.textContent = 'Stop';
+    lines.forEach(function(line, i){
+      var u = new SpeechSynthesisUtterance(line.say);
+      u.rate = 1.05;
+      u.onstart = function(){ if(out) out.textContent = line.show || line.say; if(line.on) line.on(); };
+      if(i === lines.length-1){ u.onend = function(){ stop(); if(line.done) line.done(); }; }
+      window.speechSynthesis.speak(u);
+    });
+  }
+  return {run:run, stop:stop};
+})();
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function pair(aEl,bEl,onPick){
+  aEl.addEventListener('click',function(){ onPick(0); aEl.setAttribute('aria-pressed','true'); bEl.setAttribute('aria-pressed','false'); SPEAK.stop(); });
+  bEl.addEventListener('click',function(){ onPick(1); aEl.setAttribute('aria-pressed','false'); bEl.setAttribute('aria-pressed','true'); SPEAK.stop(); });
+}
+
+/* ---------- C: captions ---------- */
+var CAPS = [
+ [0,5,'okay so today were picking up the <mark class="x">crabs cycle</mark> where we left off','Okay, so today we\'re picking up the <mark class="g">Krebs cycle</mark> where we left off.'],
+ [5,9,'remember it runs inside the <mark class="x">my toe Kondria</mark>','Remember, it runs inside the <mark class="g">mitochondria</mark>.'],
+ [9,14,'<mark class="x">a seat ill co a</mark> enters and combines with <mark class="x">ox a low acetate</mark>','<mark class="g">Acetyl-CoA</mark> enters and combines with <mark class="g">oxaloacetate</mark>.'],
+ [14,19,'each turn makes <mark class="x">to</mark> C O 2 and one <mark class="x">a TP</mark>','Each turn makes <mark class="g">two</mark> CO2 and one <mark class="g">ATP</mark>.'],
+ [19,25,'so if i ask you on the exam how many <mark class="x">and a d h</mark> the answer is three','So if I ask you on the exam how many <mark class="g">NADH</mark>, the answer is three.'],
+ [25,29,'<mark class="x">not to three</mark>','<mark class="g">Not two. Three.</mark>']
+];
+var capEnd=30, capTrack=0, capT0=0, capRaf=0, capPlaying=false;
+var capEl=document.getElementById('cap'), progEl=document.getElementById('prog'), capRows=document.getElementById('capRows');
+var playBtn=document.getElementById('playBtn');
+CAPS.forEach(function(c,k){
+  var tr=document.createElement('tr'); tr.id='cr'+k;
+  var f=function(s){ return '0:'+String(s).padStart(2,'0'); };
+  tr.innerHTML='<td class="t">'+f(c[0])+'</td><td>'+c[2]+'</td><td>'+c[3]+'</td>';
+  capRows.appendChild(tr);
+});
+function capStrip(h){ return capTrack===0 ? h.replace(/<[^>]+>/g,'') : h.replace(/<mark[^>]*>|<\/mark>/g,''); }
+function capFrame(now){
+  var s=(now-capT0)/1000;
+  if(s>=capEnd){ capStop(); return; }
+  progEl.style.width=(s/capEnd*100)+'%';
+  var k=-1; for(var i=0;i<CAPS.length;i++){ if(s>=CAPS[i][0] && s<CAPS[i][1]){ k=i; break; } }
+  capEl.innerHTML = k<0 ? '' : capStrip(CAPS[k][2+capTrack]);
+  var prev=document.querySelectorAll('tr.now'); for(var j=0;j<prev.length;j++) prev[j].classList.remove('now');
+  if(k>=0) document.getElementById('cr'+k).classList.add('now');
+  capRaf=requestAnimationFrame(capFrame);
+}
+function capStart(){ cancelAnimationFrame(capRaf); capT0=performance.now(); capPlaying=true; playBtn.textContent='Restart'; capRaf=requestAnimationFrame(capFrame); }
+function capStop(){ cancelAnimationFrame(capRaf); capPlaying=false; capEl.innerHTML=''; progEl.style.width='100%';
+  var prev=document.querySelectorAll('tr.now'); for(var j=0;j<prev.length;j++) prev[j].classList.remove('now');
+  playBtn.textContent='Play again'; }
+playBtn.addEventListener('click', capStart);
+pair(document.getElementById('tAuto'), document.getElementById('tEdit'), function(n){
+  capTrack=n; if(capPlaying) capStart(); else capEl.innerHTML=capStrip(CAPS[0][2+capTrack]);
+});
+capEl.innerHTML=capStrip(CAPS[0][2]);
+
+/* ---------- L: links ---------- */
+var LINKS = [
+  {before:'Click here', after:'Week 4 overview'},
+  {before:'Click here', after:'Chapter 7 reading guide'},
+  {before:'Here', after:'Unit 4 discussion board'},
+  {before:'https://lakemichigancollege.instructure.com/courses/1472/pages/week-four', after:'Unit 4 worksheet (PDF)'},
+  {before:'More info', after:'Office hours Zoom room'}
+];
+var lMode=0, linkList=document.getElementById('linkList'), lSaid=document.getElementById('lSaid'), lSpeak=document.getElementById('lSpeak');
+function lRender(){
+  var h='';
+  LINKS.forEach(function(x,i){ h+='<li id="lk'+i+'"><a href="#l" onclick="return false">'+esc(lMode?x.after:x.before)+'</a></li>'; });
+  linkList.innerHTML=h;
+  lSaid.innerHTML='<em>Nothing playing.</em>';
+}
+pair(document.getElementById('lBefore'), document.getElementById('lAfter'), function(n){ lMode=n; lRender(); });
+lSpeak.addEventListener('click', function(){
+  var lines = LINKS.map(function(x,i){
+    var txt = lMode ? x.after : x.before;
+    return { say:'Link. '+txt, show:'Link. '+txt, on:function(){
+      var all=linkList.querySelectorAll('li'); for(var j=0;j<all.length;j++) all[j].classList.remove('on');
+      var el=document.getElementById('lk'+i); if(el) el.classList.add('on');
+    }};
+  });
+  lines.push({ say:LINKS.length+' links', show:LINKS.length+' links', done:function(){
+    var all=linkList.querySelectorAll('li'); for(var j=0;j<all.length;j++) all[j].classList.remove('on');
+  }});
+  SPEAK.run(lines, lSpeak, 'Read the list aloud', lSaid);
+});
+lRender();
+
+/* ---------- A: alt text ---------- */
+var IMGS = [
+  {cls:'wave', path:'Decorative',
+   before:'divider-wave-blue.png',
+   after:'Marked decorative. The screen reader skips it.',
+   sayBefore:'Image. divider dash wave dash blue dot p n g',
+   sayAfter:'(skipped)'},
+  {cls:'sign', path:'Informative',
+   before:'IMG_4471.png',
+   after:'Office hours: Tuesday 10 to 11:30, Thursday 1 to 2:30, Room B204.',
+   sayBefore:'Image. I M G underscore 4 4 7 1 dot p n g',
+   sayAfter:'Image. Office hours. Tuesday 10 to 11:30, Thursday 1 to 2:30, Room B204.'},
+  {cls:'chart', path:'Complex',
+   before:'chart_final_v2.png',
+   after:'Bar chart of class average by unit. Full description in the text below.',
+   sayBefore:'Image. chart underscore final underscore v 2 dot p n g',
+   sayAfter:'Image. Bar chart of class average by unit. Full description in the text below.'}
+];
+var aMode=0, imgRow=document.getElementById('imgRow'), aSaid=document.getElementById('aSaid'), aSpeak=document.getElementById('aSpeak');
+function aRender(){
+  var h='';
+  IMGS.forEach(function(x,i){
+    var thumb = x.cls==='chart'
+      ? '<div class="thumb chart"><i style="height:46%"></i><i style="height:72%"></i><i style="height:58%"></i><i style="height:88%"></i></div>'
+      : '<div class="thumb '+x.cls+'"></div>';
+    var alt = aMode ? esc(x.after) : '<code>'+esc(x.before)+'</code>';
+    h += '<div class="imgitem" id="im'+i+'">'+thumb+'<div class="meta"><div class="path">'+x.path+'</div><div class="alt">'+alt+'</div></div></div>';
+  });
+  imgRow.innerHTML=h;
+  aSaid.innerHTML='<em>Nothing playing.</em>';
+}
+pair(document.getElementById('aBefore'), document.getElementById('aAfter'), function(n){ aMode=n; aRender(); });
+aSpeak.addEventListener('click', function(){
+  var lines=[];
+  IMGS.forEach(function(x,i){
+    var say = aMode ? x.sayAfter : x.sayBefore;
+    if(aMode && x.sayAfter==='(skipped)') return;
+    lines.push({ say:say, show:say, on:function(){
+      var all=imgRow.querySelectorAll('.imgitem'); for(var j=0;j<all.length;j++) all[j].classList.remove('on');
+      var el=document.getElementById('im'+i); if(el) el.classList.add('on');
+    }});
+  });
+  if(!lines.length) lines.push({say:'Nothing to read.', show:'Nothing to read.'});
+  lines[lines.length-1].done = function(){
+    var all=imgRow.querySelectorAll('.imgitem'); for(var j=0;j<all.length;j++) all[j].classList.remove('on');
+  };
+  SPEAK.run(lines, aSpeak, 'Read the page aloud', aSaid);
+});
+aRender();
+
+/* ---------- S: structure ---------- */
+var S_BEFORE_PAGE =
+  '<div class="ptitle">Unit 4 Overview</div>'+
+  '<h3 class="real" style="margin-top:0">Unit 4 Overview</h3>'+
+  '<p>This unit covers how the pieces you have been practicing separately start working together.</p>'+
+  '<div class="fake">What you are doing this week</div>'+
+  '<p>- Read chapter 7<br>- Watch the two videos<br>- Post to the discussion by Thursday</p>'+
+  '<div class="fake">About the reading</div>'+
+  '<p>Chapter 7 is the longest chapter in the book and the one students tell me they struggle with most. Do not try to read it in one sitting.</p>'+
+  '<h3 class="real">Assignments</h3>'+
+  '<h4 class="real">Discussion post</h4>'+
+  '<p>Pick one of the three prompts and respond in about 250 words.</p>'+
+  '<div class="fake">Worksheet</div>'+
+  '<p>Download it, fill it in, and upload it as a PDF.</p>'+
+  '<div class="fake">Due dates</div>'+
+  '<p>Discussion post Thursday. Worksheet Sunday.</p>'+
+  '<div class="fake">Getting help</div>'+
+  '<p>Office hours Tuesday 10 to 11:30.</p>';
+var S_AFTER_PAGE =
+  '<div class="ptitle">Unit 4 Overview</div>'+
+  '<p style="margin-top:0">This unit covers how the pieces you have been practicing separately start working together.</p>'+
+  '<h3 class="real">What you are doing this week</h3>'+
+  '<ul><li>Read chapter 7</li><li>Watch the two videos</li><li>Post to the discussion by Thursday</li></ul>'+
+  '<h3 class="real">About the reading</h3>'+
+  '<p>Chapter 7 is the longest chapter in the book and the one students tell me they struggle with most.</p>'+
+  '<h4 class="real">Do not read it in one sitting</h4>'+
+  '<p>The chapter is built in three parts, and the second assumes you understood the first.</p>'+
+  '<h4 class="real">If you get stuck</h4>'+
+  '<p>Bring the specific paragraph that confused you to office hours.</p>'+
+  '<h3 class="real">Assignments</h3>'+
+  '<h4 class="real">Discussion post</h4>'+
+  '<p>Pick one of the three prompts and respond in about 250 words.</p>'+
+  '<h4 class="real">Worksheet</h4>'+
+  '<p>Download it, fill it in, and upload it as a PDF.</p>'+
+  '<h3 class="real">Due dates</h3>'+
+  '<p>Discussion post Thursday. Worksheet Sunday.</p>'+
+  '<h3 class="real">Getting help</h3>'+
+  '<h4 class="real">Office hours</h4>'+
+  '<p>Tuesday 10 to 11:30, Thursday 1 to 2:30.</p>';
+var S_BEFORE=[
+  {lvl:1,text:'Unit 4 Overview',flag:'Duplicates the page title, which is already the H1.'},
+  {lvl:2,text:'Assignments'},
+  {lvl:4,text:'Discussion post',skip:true,flag:'Jumps from level 2 to level 4. A level 3 is missing.'}
+];
+var S_MISSING=['What you are doing this week','About the reading','Worksheet','Due dates','Getting help'];
+var S_AFTER=[
+  {lvl:2,text:'What you are doing this week'},{lvl:2,text:'About the reading'},
+  {lvl:3,text:'Do not read it in one sitting'},{lvl:3,text:'If you get stuck'},
+  {lvl:2,text:'Assignments'},{lvl:3,text:'Discussion post'},{lvl:3,text:'Worksheet'},
+  {lvl:2,text:'Due dates'},{lvl:2,text:'Getting help'},{lvl:3,text:'Office hours'}
+];
+var sMode=0;
+var sPage=document.getElementById('sPage'), sList=document.getElementById('sList'),
+    sCount=document.getElementById('sCount'), sLabel=document.getElementById('sLabel'),
+    sVerdict=document.getElementById('sVerdict'), sSaid=document.getElementById('sSaid'),
+    sSpeak=document.getElementById('sSpeak');
+function sRender(){
+  var list = sMode ? S_AFTER : S_BEFORE;
+  sPage.innerHTML = sMode ? S_AFTER_PAGE : S_BEFORE_PAGE;
+  sPage.scrollTop = 0;
+  sCount.textContent = list.length;
+  sLabel.textContent = list.length===1 ? 'heading on the page' : 'headings on the page';
+  var h='';
+  list.forEach(function(x,i){
+    var dent = x.lvl>=3 ? 'd3' : (x.lvl===2 ? 'd2' : '');
+    h += '<li class="'+dent+'" id="sh'+i+'"><span class="lvl'+(x.skip?' skip':'')+'">H'+x.lvl+'</span><span>'+esc(x.text)+
+         (x.flag ? '<span class="flagline">'+esc(x.flag)+'</span>' : '')+'</span></li>';
+  });
+  sList.innerHTML=h;
+  if(sMode){
+    sVerdict.innerHTML='<div class="missing" style="border-color:var(--ok)"><b style="color:var(--ok)">This is an outline.</b><p style="margin:6px 0 0;font-size:14px">Ten headings, nested two levels, no skips, and no duplicate H1 because the page title already is one.</p></div>';
+  } else {
+    var items=''; S_MISSING.forEach(function(m){ items+='<li>'+esc(m)+'</li>'; });
+    sVerdict.innerHTML='<div class="missing"><b>Five more are missing from this list.</b><p style="margin:6px 0 0;font-size:14px">These are on the page in bold at 20 point. They look exactly like the real headings. None of them is one.</p><ul>'+items+'</ul></div>';
+  }
+  sSaid.innerHTML='<em>Nothing playing.</em>';
+}
+pair(document.getElementById('sBefore'), document.getElementById('sAfter'), function(n){ sMode=n; sRender(); });
+sSpeak.addEventListener('click', function(){
+  var list = sMode ? S_AFTER : S_BEFORE;
+  var lines = list.map(function(x,i){
+    var t='Heading level '+x.lvl+', '+x.text;
+    return { say:t, show:t, on:function(){
+      var all=sList.querySelectorAll('li'); for(var j=0;j<all.length;j++) all[j].style.background='';
+      var el=document.getElementById('sh'+i); if(el) el.style.background='var(--wash)';
+    }};
+  });
+  lines.push({ say:list.length+' headings', show:list.length+' headings', done:function(){
+    var all=sList.querySelectorAll('li'); for(var j=0;j<all.length;j++) all[j].style.background='';
+  }});
+  SPEAK.run(lines, sSpeak, 'Read the list aloud', sSaid);
+});
+sRender();
+
+/* ---------- P: palette ---------- */
+var hexEl=document.getElementById('hex'), swatch=document.getElementById('swatch'),
+    ratioEl=document.getElementById('ratio'), verdictEl=document.getElementById('verdict');
+var startHex='#9CC3E5';
+function clean(h){ h=String(h).trim(); if(h[0]!=='#') h='#'+h;
+  if(/^#[0-9a-f]{3}$/i.test(h)) h='#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];
+  return /^#[0-9a-f]{6}$/i.test(h) ? h.toUpperCase() : null; }
+function toRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function lum(h){ var c=toRgb(h).map(function(v){ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); });
+  return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2]; }
+function ratioWhite(h){ var L=lum(h); return (1.05)/(L+0.05); }
+function toHsl(h){ var r=toRgb(h).map(function(v){return v/255;}),mx=Math.max.apply(null,r),mn=Math.min.apply(null,r),
+  l=(mx+mn)/2,d=mx-mn,s=d===0?0:d/(1-Math.abs(2*l-1)),hh=0;
+  if(d!==0){ if(mx===r[0]) hh=60*(((r[1]-r[2])/d)%6); else if(mx===r[1]) hh=60*(((r[2]-r[0])/d)+2); else hh=60*(((r[0]-r[1])/d)+4); }
+  if(hh<0) hh+=360; return [hh,s,l]; }
+function fromHsl(hh,s,l){ var c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs(((hh/60)%2)-1)), m=l-c/2, r,g,b;
+  if(hh<60){r=c;g=x;b=0}else if(hh<120){r=x;g=c;b=0}else if(hh<180){r=0;g=c;b=x}
+  else if(hh<240){r=0;g=x;b=c}else if(hh<300){r=x;g=0;b=c}else{r=c;g=0;b=x}
+  var f=function(v){ return ('0'+Math.round((v+m)*255).toString(16)).slice(-2); };
+  return ('#'+f(r)+f(g)+f(b)).toUpperCase(); }
+function paint(){
+  var h=clean(hexEl.value);
+  if(!h){ ratioEl.textContent='--'; verdictEl.className='verdict f'; verdictEl.textContent='Not a hex'; return; }
+  swatch.style.background=h;
+  var r=ratioWhite(h);
+  ratioEl.textContent=r.toFixed(2);
+  if(r>=4.5){ verdictEl.className='verdict p'; verdictEl.textContent='Passes'; }
+  else if(r>=3){ verdictEl.className='verdict p'; verdictEl.textContent='Large text only'; }
+  else { verdictEl.className='verdict f'; verdictEl.textContent='Fails'; }
+}
+hexEl.addEventListener('input', paint);
+document.getElementById('darker').addEventListener('click', function(){
+  var h=clean(hexEl.value); if(!h) return;
+  var p=toHsl(h); p[2]=Math.max(0,p[2]-0.04);
+  hexEl.value=fromHsl(p[0],p[1],p[2]); paint();
+});
+document.getElementById('reset').addEventListener('click', function(){ hexEl.value=startHex; paint(); });
+document.getElementById('copyHex').addEventListener('click', function(){
+  var b=this;
+  try{ navigator.clipboard.writeText(hexEl.value).then(function(){ b.textContent='Copied'; setTimeout(function(){ b.textContent='Copy hex'; },1500); },
+    function(){ hexEl.select(); }); }catch(e){ hexEl.select(); }
+});
+paint();
+
+var grayOn=false;
+document.getElementById('grayBtn').addEventListener('click', function(){
+  grayOn=!grayOn;
+  var labels=document.querySelectorAll('#theForm label');
+  for(var i=0;i<labels.length;i++){ labels[i].style.color = grayOn ? 'var(--ink)' : (i<2 ? 'var(--red)' : ''); }
+  this.textContent = grayOn ? 'Put the colour back' : 'Remove the colour';
+  document.getElementById('grayHint').textContent = grayOn
+    ? 'Two of these four are required. With the colour gone, nobody can tell which. The fix is a word, not a better red.'
+    : 'Two of these four are required. Press the button and see what is left.';
+});
+
+/* ---------- T: tables ---------- */
+var T_ROWS=[['Discussion post','Thursday','20'],['Two replies','Sunday','10'],['Worksheet','Sunday','30'],['Reading quiz','Monday','15']];
+var T_COLS=['Item','Due','Points'];
+var tMode=0, tableHost=document.getElementById('tableHost'), tSaid=document.getElementById('tSaid'),
+    tHint=document.getElementById('tHint'), tSpeak=document.getElementById('tSpeak');
+var tPick=null;
+function tRender(){
+  var h='<table class="demo"><tbody>';
+  h+='<tr>';
+  T_COLS.forEach(function(c){ h += tMode ? '<th scope="col">'+esc(c)+'</th>' : '<td><b>'+esc(c)+'</b></td>'; });
+  h+='</tr>';
+  T_ROWS.forEach(function(row,ri){
+    h+='<tr>';
+    row.forEach(function(cell,ci){ h+='<td data-r="'+ri+'" data-c="'+ci+'">'+esc(cell)+'</td>'; });
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  tableHost.innerHTML=h;
+  tPick=null;
+  tSaid.innerHTML='<em>Nothing selected.</em>';
+  tHint.textContent = tMode
+    ? 'The top row is marked as header cells, so every cell carries its column name.'
+    : 'The top row is just bold text in ordinary cells. Nothing marks it as headings.';
+  var cells=tableHost.querySelectorAll('td[data-r]');
+  for(var i=0;i<cells.length;i++){
+    cells[i].addEventListener('click', function(){
+      var prev=tableHost.querySelectorAll('.pick'); for(var j=0;j<prev.length;j++) prev[j].classList.remove('pick');
+      this.classList.add('pick');
+      tPick={r:+this.getAttribute('data-r'), c:+this.getAttribute('data-c'), text:this.textContent};
+      tSaid.innerHTML='<em>Press Read the cell aloud.</em>';
+    });
+  }
+}
+pair(document.getElementById('tBold'), document.getElementById('tHead'), function(n){ tMode=n; tRender(); });
+tSpeak.addEventListener('click', function(){
+  if(!tPick){ tSaid.innerHTML='<em>Click a cell in the table first.</em>'; return; }
+  var say = tMode
+    ? T_COLS[tPick.c]+', '+tPick.text+'. Row '+(tPick.r+2)+', column '+(tPick.c+1)+'.'
+    : 'Row '+(tPick.r+2)+', column '+(tPick.c+1)+'. '+tPick.text+'.';
+  SPEAK.run([{say:say, show:say}], tSpeak, 'Read the cell aloud', tSaid);
+});
+tRender();
+</script>
+
+</body></html>

@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Link List Demo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Domine:wght@500;700&family=Open+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+</head><body>
+<style>
+/* Layout: links demo on top (course page beside the screen reader readout), colour workbench below; both stack on phone. */
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --ink:#15181C; --muted:#5A616A; --line:#CDD3D9;
+  --navy:#00437B; --navy-ink:#00437B; --red:#C4141C; --ok:#1B7A4B;
+  --read-bg:#0E1C2B; --read-ink:#DCE6F0; --read-dim:#7E93AA; --read-line:#24384E;
+  --display:'Domine',Georgia,serif; --body:'Open Sans',Arial,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A121B; --surface:#141F2B; --ink:#EAF0F6; --muted:#9BA8B6; --line:#243444;
+  --navy:#8FCDF0; --navy-ink:#C4E3F7; --red:#FF7076; --ok:#5FD497;
+  --read-bg:#050B12; --read-ink:#DCE6F0; --read-dim:#7E93AA; --read-line:#1B2B3C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A121B; --surface:#141F2B; --ink:#EAF0F6; --muted:#9BA8B6; --line:#243444;
+  --navy:#8FCDF0; --navy-ink:#C4E3F7; --red:#FF7076; --ok:#5FD497;
+  --read-bg:#050B12; --read-ink:#DCE6F0; --read-dim:#7E93AA; --read-line:#1B2B3C; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+.wrap{max-width:1360px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:18px}
+
+h1{font-family:var(--display);font-size:clamp(26px,3.2vw,38px);font-weight:700;margin:0;color:var(--navy-ink);text-wrap:balance}
+.lede{margin:0;color:var(--muted);font-size:clamp(15px,1.5vw,18px);max-width:62ch}
+.rule{height:1px;background:var(--line);border:0;margin:10px 0 0}
+h2.sec{font-family:var(--display);font-size:clamp(21px,2.4vw,27px);font-weight:700;margin:0;color:var(--navy-ink)}
+
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+button{font-family:var(--body);font-size:16px;font-weight:600;border-radius:9px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 16px;cursor:pointer}
+button:hover{border-color:var(--navy)}
+button:focus-visible{outline:3px solid var(--navy);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--navy);color:var(--bg);border-color:var(--navy)}
+.seg{display:flex;gap:6px}
+.grow{flex:1 1 20px}
+.speak{background:var(--navy);color:var(--bg);border-color:var(--navy)}
+.stop{border-color:var(--red);color:var(--red)}
+.hint{font-size:14px;color:var(--muted);margin:0}
+
+.panels{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:880px){.panels{grid-template-columns:minmax(0,1fr)}}
+.panel{border-radius:14px;overflow:hidden;border:1px solid var(--line);min-width:0}
+.panel h3.ph{margin:0;font-family:var(--body);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:12px 20px;border-bottom:1px solid var(--line)}
+
+.course{background:var(--surface)}
+.course h3.ph{background:var(--surface);color:var(--muted)}
+.page{padding:22px 24px 28px;display:flex;flex-direction:column;gap:14px}
+.page h4{font-family:var(--display);font-size:24px;margin:0;color:var(--ink);font-weight:700}
+.page p{margin:0}
+.page a{font-weight:600}
+
+.reader{background:var(--read-bg);border-color:var(--read-line)}
+.reader h3.ph{background:var(--read-bg);color:var(--read-dim);border-color:var(--read-line)}
+.readout{padding:18px 20px 24px;display:flex;flex-direction:column;gap:10px}
+.count{font-family:var(--mono);font-size:14px;color:var(--read-dim);margin:0}
+ol.links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:l}
+ol.links li{counter-increment:l;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:baseline;
+  font-family:var(--mono);font-size:clamp(14px,1.5vw,17px);color:var(--read-ink);
+  border:1px solid var(--read-line);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere}
+ol.links li::before{content:"link " counter(l);font-size:12px;color:var(--read-dim);white-space:nowrap}
+ol.links li.now{border-color:var(--read-ink);background:#15293D}
+.verdict{margin:4px 0 0;font-size:15px;font-weight:700}
+.verdict.bad{color:#FF8A8F} .verdict.good{color:#6FE0A6}
+
+/* colour workbench */
+.work{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:880px){.work{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:14px;min-width:0}
+.pick{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+input[type=color]{inline-size:60px;block-size:48px;padding:0;border:1px solid var(--line);border-radius:9px;background:none;cursor:pointer}
+input[type=text]{font-family:var(--mono);font-size:19px;font-weight:700;text-transform:uppercase;
+  inline-size:8.5ch;padding:11px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)}
+input:focus-visible{outline:3px solid var(--navy);outline-offset:2px}
+.lab{font-size:13px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.big{font-family:var(--mono);font-size:clamp(40px,7vw,64px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.tests{display:flex;flex-direction:column;gap:8px}
+.test{display:flex;gap:10px;align-items:baseline;justify-content:space-between;
+  border-top:1px solid var(--line);padding-top:8px;font-size:15px}
+.verd{font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:14px}
+.pass{color:var(--ok)} .fail{color:var(--red)}
+.samples{display:flex;flex-direction:column;gap:12px;background:#FFFFFF;border:1px solid var(--line);
+  border-radius:12px;padding:18px 20px;color:#15181C}
+.samples .s-small{font-size:17px;font-weight:600}
+.samples .s-big{font-size:28px;font-weight:700;font-family:var(--display)}
+.samples .s-cap{font-size:13px;color:#5A616A;margin:0}
+.outcome{font-size:15px;margin:0;color:var(--muted)}
+.outcome b{color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* colour alone */
+.alone{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:12px}
+.alone .demo{background:#FFFFFF;border:1px solid var(--line);border-radius:10px;padding:16px 18px;color:#15181C;font-size:18px}
+.alone .demo.off{filter:grayscale(1)}
+.fields{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:17px}
+.fields li{border-bottom:1px solid #D8DDE2;padding-bottom:6px}
+.fields li.req{color:#C4141C;font-weight:700}
+.foot{font-size:14px;color:var(--muted);margin:0;max-width:74ch}
+.paste{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px}
+.codecard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:12px;min-width:0}
+.codecard h3{margin:0;font-family:var(--display);font-size:20px;font-weight:700;color:var(--navy-ink)}
+.codecard p{margin:0;font-size:15px;color:var(--muted)}
+pre.code{margin:0;background:var(--read-bg);color:var(--read-ink);border:1px solid var(--read-line);
+  border-radius:10px;padding:14px;font-family:var(--mono);font-size:13px;line-height:1.5;
+  max-height:220px;overflow:auto;white-space:pre;min-width:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+
+  <h1>What your links sound like</h1>
+  <p class="lede">A screen reader user can pull up a list of nothing but the links on a page. This is that list, for the same page written two ways.</p>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="Which version of the page">
+      <button id="bBefore" aria-pressed="true">Before</button>
+      <button id="bAfter" aria-pressed="false">After</button>
+    </div>
+    <span class="grow"></span>
+    <button id="bSpeak" class="speak">Read the links aloud</button>
+    <button id="bStop" class="stop">Stop</button>
+  </div>
+  <p class="hint" id="speechNote" hidden>This browser will not speak text, so read the list out loud instead. Everything else on this page still works.</p>
+
+  <div class="panels">
+    <section class="panel course" aria-label="The course page">
+      <h3 class="ph">Canvas page</h3>
+      <div class="page" id="page">
+        <h4>Unit 4 Overview</h4>
+        <div id="pageBody"></div>
+      </div>
+    </section>
+
+    <section class="panel reader" aria-label="Screen reader link list">
+      <h3 class="ph">Screen reader, links list</h3>
+      <div class="readout">
+        <p class="count" id="count"></p>
+        <ol class="links" id="links"></ol>
+        <p class="verdict" id="verdict"></p>
+      </div>
+    </section>
+  </div>
+
+  <hr class="rule">
+  <h2 class="sec">Check the colour, then bump it</h2>
+  <p class="lede">Put your course colour in and read the number. If it fails, darken it until it passes and copy the new one. That is the whole fix, and it is usually one colour used in a dozen places.</p>
+
+  <div class="work">
+    <div class="card">
+      <span class="lab">Your colour</span>
+      <div class="pick">
+        <input type="color" id="swatch" value="#9CC3E5" aria-label="Pick a colour">
+        <input type="text" id="hex" value="#9CC3E5" maxlength="7" spellcheck="false" aria-label="Colour as a hex value">
+      </div>
+      <div>
+        <span class="lab">Against white</span>
+        <div class="big" id="ratio">—</div>
+      </div>
+      <div class="tests">
+        <div class="test"><span>Body text, needs 4.5 to 1</span><span class="verd" id="vBody">—</span></div>
+        <div class="test"><span>Large text, needs 3 to 1</span><span class="verd" id="vLarge">—</span></div>
+      </div>
+      <div class="row">
+        <button id="bDark">Darker</button>
+        <button id="bLight">Lighter</button>
+        <button id="bFix">Jump to passing</button>
+      </div>
+      <div class="row">
+        <button id="bCopy">Copy hex</button>
+        <button id="bReset">Reset</button>
+      </div>
+      <p class="outcome" id="outcome">Large text means 18 point and up, or 14 point when it is bold.</p>
+    </div>
+
+    <div class="card">
+      <span class="lab">What it looks like on a page</span>
+      <div class="samples">
+        <p class="s-big" id="sBig">Unit 4 Overview</p>
+        <p class="s-small" id="sSmall">Please read Chapter 7 before Thursday.</p>
+        <p class="s-cap">Both lines are set in your colour on white, the way body text and a heading sit in a Canvas page.</p>
+      </div>
+      <div class="alone">
+        <span class="lab">Separate problem: colour carrying meaning on its own</span>
+        <div class="demo" id="aloneDemo">
+          <p style="margin:0 0 10px">Required fields are in <b style="color:#C4141C">red</b>.</p>
+          <ul class="fields">
+            <li id="f1" class="req">Full name</li>
+            <li>Preferred name</li>
+            <li id="f2" class="req">Email address</li>
+            <li>Phone</li>
+          </ul>
+        </div>
+        <div class="row">
+          <button id="bAlone" aria-pressed="false">Remove the colour</button>
+          <button id="bAloneFix">Add the word</button>
+        </div>
+        <p class="outcome" id="aloneOut">Click <b>Remove the colour</b> and the instruction stops working, because red was the only thing marking those fields. Contrast is not the problem here, so no amount of darkening fixes it. The fix is a word.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+  <h2 class="sec">Put these in a Canvas page</h2>
+  <p class="lede">These are the same two pages as Module 02 of the CLASP demo course. Import that course and you already have them. Paste them here only if you want the content in a course of your own.</p>
+
+  <div class="paste">
+    <div class="codecard">
+      <h3>Before</h3>
+      <p>Five links that say nothing, a raw web address, a colour at 1.85 to 1, and required fields marked with colour alone.</p>
+      <pre class="code" id="codeBad"></pre>
+      <div class="row"><button id="bCopyBad">Copy the Before page</button></div>
+    </div>
+    <div class="codecard">
+      <h3>After</h3>
+      <p>Same five destinations, named. Colour darkened to pass. Required fields carry the word.</p>
+      <pre class="code" id="codeGood"></pre>
+      <div class="row"><button id="bCopyGood">Copy the After page</button></div>
+    </div>
+  </div>
+
+  <p class="foot">Every ratio on this page is calculated from the colour actually on screen, not typed in. Darken until it passes walks the colour down in lightness, keeping its hue, and stops at the first value that clears 4.5 to 1 against white.</p>
+
+</div>
+
+<script>
+const PAGES = {
+  before: {
+    accent: "#9CC3E5",
+    body: [
+      ['Please read the chapter before Thursday. ', 'Click here', ' for the reading.'],
+      ['The rubric is posted. ', 'Click here', '.'],
+      ['The discussion board is open. ', 'Here', '.'],
+      ['Worksheet: ', 'https://lakemichigancollege.instructure.com/courses/1472/pages/week-four', ''],
+      ['Office hours have moved. ', 'More info', '.']
+    ],
+    links: ['Click here','Click here','Here','https://lakemichigancollege.instructure.com/courses/1472/pages/week-four','More info'],
+    verdict: ['bad','Five links. None of them says where it goes.']
+  },
+  after: {
+    accent: "#0B5A9E",
+    body: [
+      ['Start with the ', 'Week 4 overview', '.'],
+      ['Then work through the ', 'Chapter 7 reading guide', '.'],
+      ['Post your paragraph on the ', 'Unit 4 discussion board', '.'],
+      ['Finish the ', 'Unit 4 worksheet (PDF)', ' by Sunday.'],
+      ['Questions go to the ', 'Office hours Zoom room', '.']
+    ],
+    links: ['Week 4 overview','Chapter 7 reading guide','Unit 4 discussion board','Unit 4 worksheet (PDF)','Office hours Zoom room'],
+    verdict: ['good','Five links. Every one of them names its destination.']
+  }
+};
+
+let key = 'before', speaking = false;
+const $ = id => document.getElementById(id);
+
+/* ---------- contrast maths, WCAG relative luminance ---------- */
+const chan = v => { v/=255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
+function rgb(hex){ const h=hex.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+function lum(hex){ const [r,g,b]=rgb(hex); return 0.2126*chan(r)+0.7152*chan(g)+0.0722*chan(b); }
+const ratioWhite = hex => (1.05)/(lum(hex)+0.05);
+const valid = h => /^#[0-9a-f]{6}$/i.test(h);
+
+/* hue-preserving darken: convert to HSL, step lightness down */
+function toHSL(hex){
+  let [r,g,b]=rgb(hex).map(v=>v/255);
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+  let h=0; const l=(mx+mn)/2;
+  const s = d===0 ? 0 : d/(1-Math.abs(2*l-1));
+  if(d!==0){
+    if(mx===r) h=((g-b)/d)%6; else if(mx===g) h=(b-r)/d+2; else h=(r-g)/d+4;
+    h*=60; if(h<0) h+=360;
+  }
+  return [h,s,l];
+}
+function toHex(h,s,l){
+  const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs(((h/60)%2)-1)), m=l-c/2;
+  let r,g,b;
+  if(h<60)[r,g,b]=[c,x,0]; else if(h<120)[r,g,b]=[x,c,0]; else if(h<180)[r,g,b]=[0,c,x];
+  else if(h<240)[r,g,b]=[0,x,c]; else if(h<300)[r,g,b]=[x,0,c]; else [r,g,b]=[c,0,x];
+  const f=v=>Math.round((v+m)*255).toString(16).padStart(2,'0');
+  return ('#'+f(r)+f(g)+f(b)).toUpperCase();
+}
+function darkenUntilPass(hex){
+  let [h,s,l]=toHSL(hex);
+  for(let i=0;i<200 && l>0;i++){
+    l=Math.max(0,l-0.005);
+    const c=toHex(h,s,l);
+    if(ratioWhite(c)>=4.5) return c;
+  }
+  return '#000000';
+}
+
+/* ---------- links demo ---------- */
+function render(){
+  const p = PAGES[key];
+  $('bBefore').setAttribute('aria-pressed', String(key==='before'));
+  $('bAfter').setAttribute('aria-pressed', String(key==='after'));
+
+  const body = $('pageBody');
+  body.innerHTML = '';
+  p.body.forEach(([pre, linkText, post]) => {
+    const para = document.createElement('p');
+    para.appendChild(document.createTextNode(pre));
+    const a = document.createElement('a');
+    a.href = '#'; a.textContent = linkText; a.style.color = p.accent;
+    a.addEventListener('click', e => e.preventDefault());
+    para.appendChild(a);
+    para.appendChild(document.createTextNode(post));
+    body.appendChild(para);
+  });
+
+  $('count').textContent = 'Links list — ' + p.links.length + ' items';
+  const ol = $('links'); ol.innerHTML = '';
+  p.links.forEach(t => {
+    const li = document.createElement('li');
+    const sp = document.createElement('span'); sp.textContent = t;
+    li.appendChild(sp); ol.appendChild(li);
+  });
+  $('verdict').className = 'verdict ' + p.verdict[0];
+  $('verdict').textContent = p.verdict[1];
+}
+
+/* ---------- speech ---------- */
+const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window;
+if (!canSpeak){ $('bSpeak').hidden = true; $('bStop').hidden = true; $('speechNote').hidden = false; }
+
+function stop(){
+  if (canSpeak) window.speechSynthesis.cancel();
+  speaking = false;
+  $('bSpeak').textContent = 'Read the links aloud';
+  [...$('links').children].forEach(li => li.classList.remove('now'));
+}
+function spokenForm(t){
+  if (!/^https?:\/\//i.test(t)) return t;
+  return t.replace(/https?:\/\//i,'h t t p s colon slash slash ')
+          .replace(/\./g,' dot ').replace(/\//g,' slash ').replace(/-/g,' dash ');
+}
+function speak(){
+  if (!canSpeak) return;
+  if (speaking){ stop(); return; }
+  const p = PAGES[key];
+  const items = [...$('links').children];
+  speaking = true;
+  $('bSpeak').textContent = 'Reading… click to stop';
+  const queue = ['Links list, ' + p.links.length + ' items.'].concat(p.links.map(t => 'Link. ' + spokenForm(t)));
+  queue.forEach((text, i) => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95;
+    u.onstart = () => {
+      items.forEach(li => li.classList.remove('now'));
+      if (i > 0 && items[i-1]) items[i-1].classList.add('now');
+    };
+    if (i === queue.length - 1) u.onend = stop;
+    window.speechSynthesis.speak(u);
+  });
+}
+
+/* ---------- colour workbench ---------- */
+function paint(hex){
+  if (!valid(hex)) return;
+  const r = ratioWhite(hex);
+  $('ratio').textContent = r.toFixed(2) + ':1';
+  $('ratio').style.color = hex;
+  const okBody = r >= 4.5, okLarge = r >= 3;
+  $('vBody').textContent = okBody ? 'Passes' : 'Fails';
+  $('vBody').className = 'verd ' + (okBody ? 'pass' : 'fail');
+  $('vLarge').textContent = okLarge ? 'Passes' : 'Fails';
+  $('vLarge').className = 'verd ' + (okLarge ? 'pass' : 'fail');
+  $('sBig').style.color = hex;
+  $('sSmall').style.color = hex;
+  $('swatch').value = hex.toLowerCase();
+  $('bFix').disabled = okBody;
+  $('bFix').textContent = okBody ? 'Already passes' : 'Jump to passing';
+}
+const ORIGINAL = '#9CC3E5';
+function setHex(hex, note){
+  $('hex').value = hex.toUpperCase();
+  paint(hex);
+  if (note) $('outcome').innerHTML = note;
+}
+/* one step is 3% lightness, enough to see the number move without taking all day */
+function step(dir){
+  const from = $('hex').value.trim();
+  if (!valid(from)) return;
+  let [h,sat,l] = toHSL(from);
+  l = Math.min(1, Math.max(0, l + dir*0.03));
+  const to = toHex(h, sat, l);
+  const r = ratioWhite(to);
+  setHex(to, r >= 4.5
+    ? 'Now at <b>' + r.toFixed(2) + ' to 1</b>. That clears body text. Copy <b>' + to + '</b> and find and replace.'
+    : 'Now at <b>' + r.toFixed(2) + ' to 1</b>. Still short of 4.5, keep going.');
+}
+$('hex').addEventListener('input', e => {
+  let v = e.target.value.trim();
+  if (v && v[0] !== '#') { v = '#' + v; }
+  if (valid(v)) paint(v);
+});
+$('swatch').addEventListener('input', e => setHex(e.target.value));
+$('bDark').onclick  = () => step(-1);
+$('bLight').onclick = () => step(+1);
+$('bReset').onclick = () => setHex(ORIGINAL,
+  'Back to the colour you started with, at <b>' + ratioWhite(ORIGINAL).toFixed(2) + ' to 1</b>.');
+$('bFix').onclick = () => {
+  const from = $('hex').value.trim();
+  if (!valid(from)) return;
+  const to = darkenUntilPass(from);
+  setHex(to, 'Was <b>' + from.toUpperCase() + '</b> at ' + ratioWhite(from).toFixed(2) +
+    ' to 1. Now <b>' + to + '</b> at ' + ratioWhite(to).toFixed(2) +
+    ' to 1. Same hue, the first value that clears 4.5.');
+};
+$('bCopy').onclick = async () => {
+  const v = $('hex').value.trim().toUpperCase();
+  try { await navigator.clipboard.writeText(v); $('bCopy').textContent = 'Copied ' + v; }
+  catch(e){ const r=document.createRange(); r.selectNodeContents($('hex')); $('hex').select(); $('bCopy').textContent = 'Select and copy'; }
+  setTimeout(()=>{ $('bCopy').textContent = 'Copy hex'; }, 1800);
+};
+
+/* ---------- colour alone ---------- */
+let aloneGrey = false, aloneFixed = false;
+function aloneRender(){
+  $('aloneDemo').classList.toggle('off', aloneGrey);
+  $('bAlone').setAttribute('aria-pressed', String(aloneGrey));
+  $('bAlone').textContent = aloneGrey ? 'Put the colour back' : 'Remove the colour';
+  $('f1').textContent = aloneFixed ? 'Full name (Required)' : 'Full name';
+  $('f2').textContent = aloneFixed ? 'Email address (Required)' : 'Email address';
+  $('bAloneFix').textContent = aloneFixed ? 'Take the word back out' : 'Add the word';
+  $('aloneOut').innerHTML = aloneFixed
+    ? (aloneGrey
+       ? 'Colour is off and it still works, because the word <b>Required</b> is now doing the job. That is the fix, and it took four words.'
+       : 'Now click <b>Remove the colour</b> again. It still works.')
+    : (aloneGrey
+       ? 'Colour is off and there is now no way to tell which two fields are required. Darkening the red would not have helped, because the problem is not that the red was hard to read.'
+       : 'Two of these four are required and only the colour says so. Click <b>Remove the colour</b>.');
+}
+$('bAlone').onclick = () => { aloneGrey = !aloneGrey; aloneRender(); };
+$('bAloneFix').onclick = () => { aloneFixed = !aloneFixed; aloneRender(); };
+
+$('bBefore').onclick = () => { stop(); key='before'; render(); };
+$('bAfter').onclick  = () => { stop(); key='after';  render(); };
+$('bSpeak').onclick  = speak;
+$('bStop').onclick   = stop;
+
+/* ---------- Canvas paste blocks ---------- */
+const CANVAS_BAD = [
+'<h2 style="color: #9CC3E5;">Unit 4 Overview</h2>',
+'<p>Everything you need for this unit.</p>',
+'<ul>',
+'  <li>Start with the overview: <a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">Click here</a></li>',
+'  <li>The reading guide for chapter 7: <a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">Click here</a></li>',
+'  <li>Discussion board: <a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">Here</a></li>',
+'  <li>Worksheet: <a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">https://lakemichigancollege.instructure.com/courses/1472/pages/week-four</a></li>',
+'  <li>Office hours: <a href="https://lakemichigancollege.zoom.us/j/0000000000">More info</a></li>',
+'</ul>',
+'<p>Required fields are in <strong style="color: #C4141C;">red</strong>.</p>',
+'<ul>',
+'  <li style="color: #C4141C;">Full name</li>',
+'  <li>Preferred name</li>',
+'  <li style="color: #C4141C;">Email address</li>',
+'  <li>Phone</li>',
+'</ul>'
+].join('\n');
+
+const CANVAS_GOOD = [
+'<h2 style="color: #0B5A9E;">Unit 4 Overview</h2>',
+'<p>Everything you need for this unit.</p>',
+'<ul>',
+'  <li><a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">Week 4 overview</a></li>',
+'  <li><a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">Chapter 7 reading guide</a></li>',
+'  <li><a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">Unit 4 discussion board</a></li>',
+'  <li><a href="https://lakemichigancollege.instructure.com/courses/1472/pages/week-four">Unit 4 worksheet (PDF)</a></li>',
+'  <li><a href="https://lakemichigancollege.zoom.us/j/0000000000">Office hours Zoom room</a></li>',
+'</ul>',
+'<p>Required fields are marked <strong>Required</strong>.</p>',
+'<ul>',
+'  <li>Full name (Required)</li>',
+'  <li>Preferred name</li>',
+'  <li>Email address (Required)</li>',
+'  <li>Phone</li>',
+'</ul>'
+].join('\n');
+
+$('codeBad').textContent = CANVAS_BAD;
+$('codeGood').textContent = CANVAS_GOOD;
+
+async function copyCode(text, btn, label){
+  try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; }
+  catch(e){
+    const pre = btn.closest('.codecard').querySelector('pre');
+    const r = document.createRange(); r.selectNodeContents(pre);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    btn.textContent = 'Selected, press copy';
+  }
+  setTimeout(()=>{ btn.textContent = label; }, 1800);
+}
+$('bCopyBad').onclick  = e => copyCode(CANVAS_BAD,  e.currentTarget, 'Copy the Before page');
+$('bCopyGood').onclick = e => copyCode(CANVAS_GOOD, e.currentTarget, 'Copy the After page');
+
+render();
+paint('#9CC3E5');
+aloneRender();
+</script>
+
+</body></html>

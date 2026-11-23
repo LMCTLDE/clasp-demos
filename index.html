@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CLASP Accessibility Demos</title>
+<style>
+:root{--bg:#F7F8F9;--card:#FFFFFF;--ink:#16181B;--muted:#5F636A;--navy:#00437B;--red:#E11B24;--line:#C7C9C8;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1720;--card:#17212D;--ink:#EEF1F4;--muted:#A9B2BC;--navy:#96D2F2;--red:#FF7A80;--line:#2E3B49;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Open Sans",system-ui,-apple-system,sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 16px 56px}
+h1{font-family:Georgia,serif;color:var(--navy);font-size:clamp(28px,5vw,40px);margin:0}
+.rule{width:120px;height:5px;background:var(--red);border:0;margin:16px 0 0}
+p.lede{color:var(--muted);margin:14px 0 0;max-width:62ch}
+ul{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:12px}
+li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+li a{font-weight:700;font-size:18px;color:var(--navy)}
+li p{margin:4px 0 0;color:var(--ink)}
+a:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+footer{margin-top:32px;color:var(--muted);font-size:14.5px}
+</style>
+</head>
+<body>
+<main>
+<h1>CLASP Accessibility Demos</h1>
+<hr class="rule">
+<p class="lede">Interactive demos from TLDE's CLASP sessions at Lake Michigan College: Captions, Links, Alt text, Structure, Palette. Each page shows the same thing twice, before and after. The read-aloud buttons use your browser's built-in voice, so turn your sound on.</p>
+<ul>
+<li><a href="clasp.html">CLASP</a><p>The one-stop page. All five letters plus tables, each with a before and after you can play.</p></li>
+<li><a href="caption-check.html">Caption Check</a><p>A lecture clip with sound off, played with machine captions and then edited ones.</p></li>
+<li><a href="link-list.html">Link List Demo</a><p>What a page's links sound like to a screen reader, plus a colour contrast checker.</p></li>
+<li><a href="alt-text-read-aloud.html">Alt Text Read Aloud</a><p>One page with three images, read aloud with Canvas file names and then with real alt text.</p></li>
+<li><a href="heading-list.html">Heading List Demo</a><p>The heading list a screen reader builds from bold text versus real headings.</p></li>
+</ul>
+<footer>Teaching, Learning, and Distance Education, Lake Michigan College.</footer>
+</main>
+</body>
+</html>
