@@ -80,7 +80,8 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .person{position:absolute;right:12%;bottom:0;width:22%;aspect-ratio:1/1.4}
 .person::before{content:"";position:absolute;left:30%;top:0;width:40%;aspect-ratio:1;border-radius:50%;background:#3C5A78}
 .person::after{content:"";position:absolute;left:5%;bottom:0;width:90%;height:58%;border-radius:45% 45% 0 0;background:#2C4762}
-.soundoff{position:absolute;top:12px;left:12px;font:700 11px var(--body);letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px}
+.soundoff{position:absolute;top:12px;left:12px;font:700 11px var(--body);letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;border:2px solid #fff;cursor:pointer}
+.soundoff[aria-pressed="false"]{background:rgba(179,18,26,.85)}
 .cap{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);max-width:88%;text-align:center;font:600 clamp(14px,2.4vw,20px)/1.35 var(--body);color:var(--screenInk);background:rgba(0,0,0,.78);padding:6px 14px;border-radius:4px}
 .cap:empty{display:none}
 .bar{flex:1 1 140px;height:6px;background:var(--line);border-radius:3px;overflow:hidden;min-width:110px}
@@ -203,12 +204,12 @@ table.demo td{cursor:pointer}
     </div>
 
     <div class="card">
-      <h3>Thirty seconds of a lecture, sound off</h3>
-      <p class="note">Play it with the machine captions, then switch and play it again. Same words spoken, different lecture read.</p>
+      <h3>Thirty seconds of a lecture</h3>
+      <p class="note">Play it with the machine captions, then switch and play it again. Same words spoken, different lecture read. Leave the sound on to hear what was really said, or click SOUND ON to turn it off and watch it the way a viewer without sound does.</p>
       <div class="player" aria-label="Mock lecture video with captions">
         <div class="board"><i style="top:18%;width:55%"></i><i style="top:34%;width:40%"></i><i style="top:50%;width:62%"></i><i style="top:66%;width:30%"></i></div>
         <div class="person" aria-hidden="true"></div>
-        <div class="soundoff">SOUND OFF</div>
+        <button type="button" class="soundoff" id="soundBtn" aria-pressed="true">SOUND ON</button>
         <div class="cap" id="cap" aria-live="off"></div>
       </div>
       <div class="ctl" style="margin-top:14px;margin-bottom:0">
@@ -217,6 +218,7 @@ table.demo td{cursor:pointer}
           <button id="tEdit" aria-pressed="false">Edited captions</button>
         </div>
         <button class="btn" id="playBtn">Play</button>
+        <button class="btn ghost" id="restartBtn">Restart</button>
         <div class="bar" aria-hidden="true"><span id="prog"></span></div>
       </div>
     </div>
@@ -453,9 +455,14 @@ var CAPS = [
  [19,25,'so if i ask you on the exam how many <mark class="x">and a d h</mark> the answer is three','So if I ask you on the exam how many <mark class="g">NADH</mark>, the answer is three.'],
  [25,29,'<mark class="x">not to three</mark>','<mark class="g">Not two. Three.</mark>']
 ];
-var capEnd=30, capTrack=0, capT0=0, capRaf=0, capPlaying=false;
+var capEnd=30, capTrack=0, capT0=0, capRaf=0, capPlaying=false, capPos=0, capSound=true, capSaid=-1;
+var CAPSAY=["Okay, so today we're picking up the Krebs cycle where we left off.","Remember, it runs inside the mitochondria.","Acetyl co A enters and combines with oxaloacetate.","Each turn makes two C O 2 and one A T P.","So if I ask you on the exam how many N A D H, the answer is three.","Not two. Three."];
+var soundBtn=document.getElementById('soundBtn');
+function capHush(){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} capSaid=-1; }
+function capSay(k){ if(!capSound || k<0 || k===capSaid || !('speechSynthesis' in window)) return; capSaid=k; window.speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(CAPSAY[k]); u.rate=1.05; window.speechSynthesis.speak(u); }
+soundBtn.addEventListener('click', function(){ capSound=!capSound; soundBtn.setAttribute('aria-pressed', capSound); soundBtn.textContent = capSound ? 'SOUND ON' : 'SOUND OFF'; capHush(); });
 var capEl=document.getElementById('cap'), progEl=document.getElementById('prog'), capRows=document.getElementById('capRows');
-var playBtn=document.getElementById('playBtn');
+var playBtn=document.getElementById('playBtn'), restartBtn=document.getElementById('restartBtn');
 CAPS.forEach(function(c,k){
   var tr=document.createElement('tr'); tr.id='cr'+k;
   var f=function(s){ return '0:'+String(s).padStart(2,'0'); };
@@ -463,23 +470,30 @@ CAPS.forEach(function(c,k){
   capRows.appendChild(tr);
 });
 function capStrip(h){ return capTrack===0 ? h.replace(/<[^>]+>/g,'') : h.replace(/<mark[^>]*>|<\/mark>/g,''); }
-function capFrame(now){
-  var s=(now-capT0)/1000;
-  if(s>=capEnd){ capStop(); return; }
+function capShow(s){
   progEl.style.width=(s/capEnd*100)+'%';
   var k=-1; for(var i=0;i<CAPS.length;i++){ if(s>=CAPS[i][0] && s<CAPS[i][1]){ k=i; break; } }
+  if(s===0) k=0;
   capEl.innerHTML = k<0 ? '' : capStrip(CAPS[k][2+capTrack]);
   var prev=document.querySelectorAll('tr.now'); for(var j=0;j<prev.length;j++) prev[j].classList.remove('now');
-  if(k>=0) document.getElementById('cr'+k).classList.add('now');
+  if(k>=0 && s>0) document.getElementById('cr'+k).classList.add('now');
+  return k;
+}
+function capFrame(now){
+  capPos=(now-capT0)/1000;
+  if(capPos>=capEnd){ capStop(); return; }
+  var k=capShow(capPos); if(capPos>0) capSay(k);
   capRaf=requestAnimationFrame(capFrame);
 }
-function capStart(){ cancelAnimationFrame(capRaf); capT0=performance.now(); capPlaying=true; playBtn.textContent='Restart'; capRaf=requestAnimationFrame(capFrame); }
-function capStop(){ cancelAnimationFrame(capRaf); capPlaying=false; capEl.innerHTML=''; progEl.style.width='100%';
+function capPlay(){ if(capPos>=capEnd) capPos=0; cancelAnimationFrame(capRaf); capT0=performance.now()-capPos*1000; capPlaying=true; playBtn.textContent='Pause'; capRaf=requestAnimationFrame(capFrame); }
+function capPause(){ cancelAnimationFrame(capRaf); capHush(); capPlaying=false; playBtn.textContent='Play'; }
+function capStop(){ cancelAnimationFrame(capRaf); capSaid=-1; capPlaying=false; capPos=capEnd; capEl.innerHTML=''; progEl.style.width='100%';
   var prev=document.querySelectorAll('tr.now'); for(var j=0;j<prev.length;j++) prev[j].classList.remove('now');
   playBtn.textContent='Play again'; }
-playBtn.addEventListener('click', capStart);
+playBtn.addEventListener('click', function(){ capPlaying ? capPause() : capPlay(); });
+restartBtn.addEventListener('click', function(){ capHush(); capPos=0; capShow(0); capPlay(); });
 pair(document.getElementById('tAuto'), document.getElementById('tEdit'), function(n){
-  capTrack=n; if(capPlaying) capStart(); else capEl.innerHTML=capStrip(CAPS[0][2+capTrack]);
+  capTrack=n; capSaid=-1; if(!capPlaying && capPos<capEnd) capShow(capPos);
 });
 capEl.innerHTML=capStrip(CAPS[0][2]);
 

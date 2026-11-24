@@ -20,7 +20,8 @@ h2{font-family:var(--display);color:var(--navy);font-size:1.3rem;margin:0}
 .person{position:absolute;right:12%;bottom:0;width:22%;aspect-ratio:1/1.4}
 .person::before{content:"";position:absolute;left:30%;top:0;width:40%;aspect-ratio:1;border-radius:50%;background:#3C5A78}
 .person::after{content:"";position:absolute;left:5%;bottom:0;width:90%;height:58%;border-radius:45% 45% 0 0;background:#2C4762}
-.muted{position:absolute;top:12px;left:12px;font:700 .75rem var(--body);letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px}
+.muted{position:absolute;top:12px;left:12px;font:700 .75rem var(--body);letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;border:2px solid #fff;cursor:pointer}
+.muted[aria-pressed="false"]{background:rgba(179,18,26,.85)}
 .cap{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);max-width:88%;text-align:center;font:600 clamp(.95rem,2.6vw,1.45rem)/1.35 var(--body);color:var(--screenInk);background:rgba(0,0,0,.78);padding:6px 14px;border-radius:4px}
 .cap:empty{display:none}
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -28,6 +29,7 @@ h2{font-family:var(--display);color:var(--navy);font-size:1.3rem;margin:0}
 .seg button{border:0;background:transparent;color:var(--navy);font:600 .95rem var(--body);padding:8px 16px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--navy);color:var(--card)}
 .btn{border:2px solid var(--navy);background:var(--navy);color:var(--card);font:700 .95rem var(--body);padding:8px 18px;border-radius:999px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--navy)}
 button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .bar{flex:1 1 160px;height:6px;background:var(--rule);border-radius:3px;overflow:hidden;min-width:120px}
 .bar span{display:block;height:100%;width:0;background:var(--red)}
@@ -53,13 +55,13 @@ tr.now td{background:color-mix(in srgb,var(--navy) 10%,transparent)}
 <header>
 <h1>Who made the video decides what you do</h1>
 <div class="rule"></div>
-<p class="lede">A thirty second lecture clip, sound off, captions on. Play it with the machine captions, then with the edited ones. Same words spoken, different lecture read.</p>
+<p class="lede">A thirty second lecture clip with captions on. Leave the sound on to hear what was really said, or turn it off to watch it the way a viewer without sound does. Play it with the machine captions, then with the edited ones. Same words spoken, different lecture read.</p>
 </header>
 
 <div class="player" aria-label="Mock lecture video with captions">
 <div class="board"><i style="top:18%;width:55%"></i><i style="top:34%;width:40%"></i><i style="top:50%;width:62%"></i><i style="top:66%;width:30%"></i></div>
 <div class="person" aria-hidden="true"></div>
-<div class="muted">SOUND OFF</div>
+<button type="button" class="muted" id="sound" aria-pressed="true">SOUND ON</button>
 <div class="cap" id="cap" aria-live="off"></div>
 </div>
 
@@ -69,6 +71,7 @@ tr.now td{background:color-mix(in srgb,var(--navy) 10%,transparent)}
 <button id="t-edit" aria-pressed="false">Edited captions</button>
 </div>
 <button class="btn" id="play">Play</button>
+<button class="btn ghost" id="restart">Restart</button>
 <div class="bar" aria-hidden="true"><span id="prog"></span></div>
 </div>
 
@@ -100,26 +103,37 @@ const C=[
  [19,25,'so if i ask you on the exam how many <mark class="x">and a d h</mark> the answer is three','So if I ask you on the exam how many <mark class="ok">NADH</mark>, the answer is three.'],
  [25,29,'<mark class="x">not to three</mark>','<mark class="ok">Not two. Three.</mark>']
 ];
-const END=30;let track=0,t0=0,raf=0,playing=false;
-const cap=document.getElementById('cap'),prog=document.getElementById('prog'),rows=document.getElementById('rows');
+const END=30;let track=0,t0=0,raf=0,playing=false,pos=0,sound=true,said=-1;
+const SAY=["Okay, so today we're picking up the Krebs cycle where we left off.","Remember, it runs inside the mitochondria.","Acetyl co A enters and combines with oxaloacetate.","Each turn makes two C O 2 and one A T P.","So if I ask you on the exam how many N A D H, the answer is three.","Not two. Three."];
+const soundB=document.getElementById('sound');
+function hush(){try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}said=-1}
+function say(k){if(!sound||k<0||k===said||!('speechSynthesis' in window))return;said=k;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(SAY[k]);u.rate=1.05;speechSynthesis.speak(u)}
+soundB.onclick=()=>{sound=!sound;soundB.setAttribute('aria-pressed',sound);soundB.textContent=sound?'SOUND ON':'SOUND OFF';hush()};
+const cap=document.getElementById('cap'),prog=document.getElementById('prog'),rows=document.getElementById('rows'),playB=document.getElementById('play');
 C.forEach((c,k)=>{const tr=document.createElement('tr');tr.id='r'+k;const f=s=>'0:'+String(s).padStart(2,'0');tr.innerHTML='<td class="t">'+f(c[0])+'</td><td>'+c[2]+'</td><td>'+c[3]+'</td>';rows.appendChild(tr)});
 function strip(h){return track===0?h.replace(/<[^>]+>/g,''):h.replace(/<mark[^>]*>|<\/mark>/g,'')}
-function frame(now){
- const s=(now-t0)/1000;
- if(s>=END){stopPlay();return}
+function show(s){
  prog.style.width=(s/END*100)+'%';
- let k=C.findIndex(c=>s>=c[0]&&s<c[1]);
+ let k=s===0?0:C.findIndex(c=>s>=c[0]&&s<c[1]);
  cap.innerHTML=k<0?'':strip(C[k][2+track]);
  document.querySelectorAll('tr.now').forEach(r=>r.classList.remove('now'));
- if(k>=0)document.getElementById('r'+k).classList.add('now');
+ if(k>=0&&s>0)document.getElementById('r'+k).classList.add('now');
+ return k;
+}
+function frame(now){
+ pos=(now-t0)/1000;
+ if(pos>=END){stopPlay();return}
+ const k=show(pos);if(pos>0)say(k);
  raf=requestAnimationFrame(frame);
 }
-function startPlay(){cancelAnimationFrame(raf);t0=performance.now();playing=true;document.getElementById('play').textContent='Restart';raf=requestAnimationFrame(frame)}
-function stopPlay(){cancelAnimationFrame(raf);playing=false;cap.innerHTML='';prog.style.width='100%';document.querySelectorAll('tr.now').forEach(r=>r.classList.remove('now'));document.getElementById('play').textContent='Play again'}
-function setTrack(n){track=n;document.getElementById('t-auto').setAttribute('aria-pressed',n===0);document.getElementById('t-edit').setAttribute('aria-pressed',n===1);if(playing)startPlay()}
+function startPlay(){if(pos>=END)pos=0;cancelAnimationFrame(raf);t0=performance.now()-pos*1000;playing=true;playB.textContent='Pause';raf=requestAnimationFrame(frame)}
+function pausePlay(){cancelAnimationFrame(raf);hush();playing=false;playB.textContent='Play'}
+function stopPlay(){cancelAnimationFrame(raf);said=-1;playing=false;pos=END;cap.innerHTML='';prog.style.width='100%';document.querySelectorAll('tr.now').forEach(r=>r.classList.remove('now'));playB.textContent='Play again'}
+function setTrack(n){track=n;hush();document.getElementById('t-auto').setAttribute('aria-pressed',n===0);document.getElementById('t-edit').setAttribute('aria-pressed',n===1);if(!playing&&pos<END)show(pos)}
 document.getElementById('t-auto').onclick=()=>setTrack(0);
 document.getElementById('t-edit').onclick=()=>setTrack(1);
-document.getElementById('play').onclick=startPlay;
+playB.onclick=()=>playing?pausePlay():startPlay();
+document.getElementById('restart').onclick=()=>{hush();pos=0;show(0);startPlay()};
 cap.innerHTML=strip(C[0][2]);
 </script>
 
