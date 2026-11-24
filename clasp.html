@@ -456,11 +456,13 @@ var CAPS = [
  [25,29,'<mark class="x">not to three</mark>','<mark class="g">Not two. Three.</mark>']
 ];
 var capEnd=30, capTrack=0, capT0=0, capRaf=0, capPlaying=false, capPos=0, capSound=true, capSaid=-1;
-var CAPSAY=["Okay, so today we're picking up the Krebs cycle where we left off.","Remember, it runs inside the mitochondria.","Acetyl co A enters and combines with oxaloacetate.","Each turn makes two C O 2 and one A T P.","So if I ask you on the exam how many N A D H, the answer is three.","Not two. Three."];
+var capAudio=new Audio('audio/lecture.mp3'); capAudio.preload='auto';
+try{ fetch('audio/lecture.mp3').then(function(r){ return r.blob(); }).then(function(b){ if(!capPlaying) capAudio.src=URL.createObjectURL(b); }).catch(function(){}); }catch(e){}
 var soundBtn=document.getElementById('soundBtn');
-function capHush(){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} capSaid=-1; }
-function capSay(k){ if(!capSound || k<0 || k===capSaid || !('speechSynthesis' in window)) return; capSaid=k; window.speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(CAPSAY[k]); u.rate=1.05; window.speechSynthesis.speak(u); }
-soundBtn.addEventListener('click', function(){ capSound=!capSound; soundBtn.setAttribute('aria-pressed', capSound); soundBtn.textContent = capSound ? 'SOUND ON' : 'SOUND OFF'; capHush(); });
+function capHush(){ capAudio.pause(); }
+function capVoice(){ if(capSound && capPlaying){ try{ capAudio.currentTime=capPos; }catch(e){} var pr=capAudio.play(); if(pr&&pr.catch) pr.catch(function(){}); } }
+function capSay(){}
+soundBtn.addEventListener('click', function(){ capSound=!capSound; soundBtn.setAttribute('aria-pressed', capSound); soundBtn.textContent = capSound ? 'SOUND ON' : 'SOUND OFF'; capHush(); capVoice(); });
 var capEl=document.getElementById('cap'), progEl=document.getElementById('prog'), capRows=document.getElementById('capRows');
 var playBtn=document.getElementById('playBtn'), restartBtn=document.getElementById('restartBtn');
 CAPS.forEach(function(c,k){
@@ -485,9 +487,9 @@ function capFrame(now){
   var k=capShow(capPos); if(capPos>0) capSay(k);
   capRaf=requestAnimationFrame(capFrame);
 }
-function capPlay(){ if(capPos>=capEnd) capPos=0; cancelAnimationFrame(capRaf); capT0=performance.now()-capPos*1000; capPlaying=true; playBtn.textContent='Pause'; capRaf=requestAnimationFrame(capFrame); }
+function capPlay(){ if(capPos>=capEnd) capPos=0; cancelAnimationFrame(capRaf); capT0=performance.now()-capPos*1000; capPlaying=true; playBtn.textContent='Pause'; capVoice(); capRaf=requestAnimationFrame(capFrame); }
 function capPause(){ cancelAnimationFrame(capRaf); capHush(); capPlaying=false; playBtn.textContent='Play'; }
-function capStop(){ cancelAnimationFrame(capRaf); capSaid=-1; capPlaying=false; capPos=capEnd; capEl.innerHTML=''; progEl.style.width='100%';
+function capStop(){ cancelAnimationFrame(capRaf); capSaid=-1; capHush(); capPlaying=false; capPos=capEnd; capEl.innerHTML=''; progEl.style.width='100%';
   var prev=document.querySelectorAll('tr.now'); for(var j=0;j<prev.length;j++) prev[j].classList.remove('now');
   playBtn.textContent='Play again'; }
 playBtn.addEventListener('click', function(){ capPlaying ? capPause() : capPlay(); });
